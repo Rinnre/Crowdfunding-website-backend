@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: crowd-management
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/crowd_funding?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: wj1324
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#解决spring版本过高swagger不适配的问题
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+
+#配置mapper xml文件的路径
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+
+server:
+  port: 9527
+
+logging:
+  level:
+    com.wj.crowd.management.mapper: debug
+    com.wj.crowd.management.test: debug
