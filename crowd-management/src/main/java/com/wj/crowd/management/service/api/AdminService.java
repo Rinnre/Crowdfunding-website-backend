@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wj.crowd.management.entity.Do.Admin;
-import com.wj.crowd.management.entity.Vo.AdminSearchVo;
 import com.wj.crowd.management.entity.Vo.AdminVo;
+import com.wj.crowd.management.entity.Vo.RoleVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -24,4 +26,10 @@ public interface AdminService extends IService<Admin> {
     void modifyAdminById(String id, AdminVo adminVo);
 
     void saveAdmin(AdminVo adminVo);
+
+    List<RoleVo> getAssignedRoles(String id);
+
+    void assignRoles(String adminId, List<String> roleIdList);
+
+    void unAssignRoles(String adminId, List<String> roleIdList);
 }

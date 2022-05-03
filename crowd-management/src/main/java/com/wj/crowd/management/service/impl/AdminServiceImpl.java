@@ -8,8 +8,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.management.entity.Do.Admin;
+import com.wj.crowd.management.entity.Do.Role;
 import com.wj.crowd.management.entity.Vo.AdminVo;
+import com.wj.crowd.management.entity.Vo.RoleVo;
 import com.wj.crowd.management.mapper.AdminMapper;
+import com.wj.crowd.management.mapper.RoleMapper;
 import com.wj.crowd.management.service.api.AdminService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +38,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @Autowired
+    private RoleMapper roleMapper;
 
     /**
      * 条件查询数据带分页
@@ -154,5 +159,32 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         if(saveResult<=0){
             throw new CrowdException(ResultCodeEnum.SAVE_DATA_ERROR);
         }
+    }
+
+    @Override
+    public List<RoleVo> getAssignedRoles(String id) {
+
+        List<Role> roles = roleMapper.getAssignedRoles(id);
+
+        List<RoleVo> roleVos = new ArrayList<>();
+
+        // 转为vo对象
+        roles.forEach(role -> {
+            RoleVo roleVo = new RoleVo();
+            BeanUtils.copyProperties(role,roleVo);
+            roleVos.add(roleVo);
+        });
+
+        return roleVos;
+    }
+
+    @Override
+    public void assignRoles(String adminId, List<String> roleIdList) {
+        roleMapper.assignRoles(adminId,roleIdList);
+    }
+
+    @Override
+    public void unAssignRoles(String adminId, List<String> roleIdList) {
+        roleMapper.unAssignRoles(adminId,roleIdList);
     }
 }

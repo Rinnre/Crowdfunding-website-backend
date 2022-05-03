@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.management.entity.Do.Admin;
 import com.wj.crowd.management.entity.Vo.AdminVo;
+import com.wj.crowd.management.entity.Vo.RoleVo;
 import com.wj.crowd.management.service.api.AdminService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -63,7 +64,7 @@ public class AdminController {
     @PutMapping("/modify/admin/{id}")
     @ApiOperation("修改管理员信息")
     public ResultEntity<String> modifyAdminById(@PathVariable String id,
-                                                AdminVo adminVo) {
+                                                @RequestBody AdminVo adminVo) {
         try {
             adminService.modifyAdminById(id, adminVo);
             return ResultEntity.success();
@@ -110,11 +111,44 @@ public class AdminController {
         }
     }
 
-    @PostMapping("/assign/roles")
+    @PostMapping("/assign/roles/{admin_id}")
     @ApiOperation("给管理员账号分配角色")
-    public ResultEntity<String> assignRoles(){
-        return ResultEntity.success();
+    public ResultEntity<String> assignRoles(@PathVariable("admin_id") String adminId,
+                                            @RequestBody List<String> RoleIdList){
+        try {
+            adminService.assignRoles(adminId,RoleIdList);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
     }
+    @DeleteMapping("/unAssign/roles/{admin_id}")
+    @ApiOperation("取消分配角色")
+    public ResultEntity<String> unAssignRoles(@PathVariable("admin_id") String adminId,
+                                              @RequestBody List<String> RoleIdList){
+        try {
+            adminService.unAssignRoles(adminId,RoleIdList);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get/assigned/roles/{admin_id}")
+    @ApiOperation("获取已经分配的角色")
+    public ResultEntity<List<RoleVo>> getAssignedRoles (@PathVariable("admin_id") String id){
+        try {
+            List<RoleVo> roles = adminService.getAssignedRoles(id);
+            return ResultEntity.success(roles);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+
+    }
+
 
 }
 

@@ -1,5 +1,6 @@
 package com.wj.crowd.management.entity.Vo;
 
+import com.wj.crowd.management.entity.Do.Permission;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,7 +30,7 @@ public class MenuVo {
     private Integer type;
 
     @ApiModelProperty(value = "访问权限")
-    private String permissionValue;
+    private List<PermissionVo> permissionValue;
 
     @ApiModelProperty(value = "访问路径")
     private String path;

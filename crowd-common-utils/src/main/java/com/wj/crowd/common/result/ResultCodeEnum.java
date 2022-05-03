@@ -36,7 +36,9 @@ public enum ResultCodeEnum {
     UPDATE_DATA_ERROR(205,"更新数据失败"),
     LOGIN_ACCT_IN_USED(230, "登录账号已经存在"),
     SAVE_DATA_ERROR(231,"保存数据失败"),
-    ROLE_NAME_ALREADY_EXIST(232, "该角色已经存在");
+    ROLE_NAME_ALREADY_EXIST(232, "该角色已经存在"),
+    DELETE_DATA_ERROR(233, "删除数据失败"),
+    DATA_DELETE_ERROR_HAS_CHILDREN(234,"菜单存在子节点、删除失败" );
     ;
 
     private Integer code;
