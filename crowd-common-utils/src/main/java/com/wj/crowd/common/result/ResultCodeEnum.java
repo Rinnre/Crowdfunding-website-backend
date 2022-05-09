@@ -38,7 +38,12 @@ public enum ResultCodeEnum {
     SAVE_DATA_ERROR(231,"保存数据失败"),
     ROLE_NAME_ALREADY_EXIST(232, "该角色已经存在"),
     DELETE_DATA_ERROR(233, "删除数据失败"),
-    DATA_DELETE_ERROR_HAS_CHILDREN(234,"菜单存在子节点、删除失败" );
+    DATA_DELETE_ERROR_HAS_CHILDREN(234,"菜单存在子节点、删除失败" ),
+    SEND_CODE_ERROR(235, "短信验证码发送失败"),
+    LOGIN_DATA_ERROR(236,"手机或者验证码为空" ),
+    NETWORK_ERROR(237,"服务器网络异常，请稍后重试" ),
+    LOGIN_PHONE_ERROR(238, "手机或者密码为空"),
+    LOGIN_PHONE_OR_PASSWORD_ERROR(239, "手机或者密码不正确");
     ;
 
     private Integer code;

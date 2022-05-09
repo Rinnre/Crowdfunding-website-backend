@@ -1,0 +1,25 @@
+spring:
+  redis:
+    host: 192.168.153.129
+    database: 1
+    timeout: 1800000
+    lettuce:
+      pool:
+        max-active: 20
+        max-wait: -1
+        #最大阻塞等待时间(负数表示没限制)
+        max-idle: 5
+        min-idle: 0
+  application:
+    name: crowd-redis
+    #nacos注册中心
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+  #解决spring版本过高swagger不适配的问题
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+server:
+  port: 9530

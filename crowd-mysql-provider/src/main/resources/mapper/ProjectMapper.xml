@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wj.crowd.mysql.mapper.ProjectMapper">
+    <resultMap id="simpleProjectResultMap" type="com.wj.crowd.entity.Do.SimpleProject">
+        <id property="id" column="id"/>
+        <result property="title" column="title"/>
+        <result property="supportMoney" column="support_money"/>
+        <result property="headPicture" column="head_picture"/>
+        <result property="percentage" column="percentage"/>
+        <association property="user" column="sponsor" select="com.wj.crowd.mysql.mapper.UserMapper.getUserById"/>
+    </resultMap>
+    <!--    List<SimpleProject> getProjectPages(@Param("page") Long page, @Param("size") Long size, @Param("searchProjectVo") SearchProjectVo searchProjectVo);-->
+    <select id="getProjectPages" resultMap="simpleProjectResultMap">
+        SELECT title,support_money,head_picture,support_money/target_money*100 "percentage",sponsor
+        FROM project
+        <if test="null!=searchProjectVo">
+            <where>
+                <if test="null!=searchProjectVo.keywords">
+                    AND title LIKE concat('%',#{searchProjectVo.keywords},'%')
+                </if>
+                <if test="null!=searchProjectVo.type">
+                    AND type = #{searchProjectVo.type}
+                </if>
+                <if test="null!=searchProjectVo.status">
+                    AND status = #{searchProjectVo.status}
+                </if>
+                AND is_delete=0
+            </where>
+            <if test="null!=searchProjectVo.sortMethods">
+                ORDER BY #{searchProjectVo.sortMethods} DESC
+            </if>
+        </if>
+        LIMIT #{page},#{size}
+    </select>
+
+    <!--    Long getProjectPagesCount(@Param("searchProjectVo") SearchProjectVo searchProjectVo);-->
+    <select id="getProjectPagesCount" resultType="Long">
+        SELECT COUNT(*)
+        FROM project
+        <if test="null!=searchProjectVo">
+            <where>
+                <if test="null!=searchProjectVo.keywords">
+                    AND title LIKE concat('%',#{searchProjectVo.keywords},'%')
+                </if>
+                <if test="null!=searchProjectVo.type">
+                    AND type = #{searchProjectVo.type}
+                </if>
+                <if test="null!=searchProjectVo.status">
+                    AND status = #{searchProjectVo.status}
+                </if>
+                AND is_delete=0
+            </where>
+        </if>
+    </select>
+
+    <!--    <select id="getUserById" resultType="com.wj.crowd.entity.Do.User">-->
+    <!--        SELECT uid,nick_name,avatar,auth_status-->
+    <!--        FROM user-->
+    <!--        WHERE uid =#{sponsor}-->
+    <!--    </select>-->
+
+    <resultMap id="projectDetailResultMap" type="com.wj.crowd.entity.Do.Project">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="title" property="title"/>
+        <result column="type" property="type"/>
+        <result column="target_money" property="targetMoney"/>
+        <result column="support_money" property="supportMoney"/>
+        <result column="supporter_number" property="supporterNumber"/>
+        <result column="comment_number" property="commentNumber"/>
+        <result column="head_picture" property="headPicture"/>
+        <result column="video" property="video"/>
+        <result column="start_time" property="startTime"/>
+        <result column="end_time" property="endTime"/>
+        <result column="status" property="status"/>
+        <association property="sponsor" column="sponsor" select="com.wj.crowd.mysql.mapper.UserMapper.getUserById"/>
+        <collection column="id"  property="rewards" select="com.wj.crowd.mysql.mapper.RewardMapper.getRewardsByProjectId"/>
+        <collection column="id" property="projectDetails" select="com.wj.crowd.mysql.mapper.ProjectDetailMapper.getProjectDetailsByProjectId"/>
+    </resultMap>
+    <!--    Project getProjectByProjectId(String projectId);-->
+    <select id="getProjectByProjectId" resultMap="projectDetailResultMap">
+        SELECT *
+        FROM project
+        WHERE id = #{projectId}
+        AND is_delete = 0
+    </select>
+
+</mapper>

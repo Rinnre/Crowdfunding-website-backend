@@ -1,0 +1,35 @@
+spring:
+  #nacos注册中心
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://localhost:3306/crowd_funding?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: wj1324
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  application:
+    name: crowd-mysql
+
+  #解决spring版本过高swagger不适配的问题
+  mvc:
+    pathmatch:
+      matching-strategy: ANT_PATH_MATCHER
+
+server:
+  port: 9529
+
+
+#配置mapper xml文件的路径
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+
+logging:
+  level:
+    com.wj.crowd.mysql.mapper: debug
+    com.wj.crowd.mysql.test: debug
+
+

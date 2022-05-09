@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wj.crowd.management.mapper.PermissionMapper">
+
+    <select id="getMenuPermissionsById" resultType="com.wj.crowd.management.entity.Do.Permission">
+        SELECT id,name "value"
+        FROM permission JOIN menu_permissions
+        ON permission.id = menu_permissions.permission_id
+        WHERE menu_permissions.menu_id = #{id}
+        AND permission.is_delete = 0
+    </select>
+<!--    List<Permission> getAssignedPermissions(String roleId);-->
+    <select id="getAssignedPermissions" resultType="com.wj.crowd.management.entity.Do.Permission">
+        SELECT id,name "value"
+        FROM role_permission JOIN permission
+        ON role_permission.permission_id = permission.id
+        WHERE role_permission.role_id = #{roleId}
+    </select>
+
+<!--    void assignPermission(String roleId, List<String> permissionIdList);-->
+    <insert id="assignPermission">
+        INSERT role_permission(role_id,permission_id)
+        VALUE
+        <foreach collection="permissionIdList" item="permissionId" separator=",">
+            (#{roleId},#{permissionId})
+        </foreach>
+    </insert>
+
+<!--    void unAssignPermission(String roleId, List<String> permissionIdList);-->
+    <update id="unAssignPermission">
+        DELETE FROM  role_permission
+        WHERE role_id = #{roleId}
+        AND permission_id IN(
+            <foreach collection="permissionIdList" item="permissionId" separator=",">
+                #{permissionId}
+            </foreach>
+        )
+    </update>
+
+<!--    int deletePermissionMenuByMenuId(String menuId);-->
+    <delete id="deletePermissionMenuByMenuId">
+        DELETE FROM menu_permissions
+        WHERE menu_id = #{menuId}
+    </delete>
+</mapper>

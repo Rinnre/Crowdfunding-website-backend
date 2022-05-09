@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wj.crowd.management.mapper.RoleMapper">
+    <!--List<Role> getAssignedRoles(String id);-->
+    <select id="getAssignedRoles" resultType="com.wj.crowd.management.entity.Do.Role">
+        SELECT id,name
+        FROM admin_role
+        JOIN role
+        ON admin_role.role_id = role.id
+        where
+        admin_role.admin_id = #{id}
+    </select>
+
+<!--    void assignRoles(String adminId, List<String> roleIdList);-->
+    <insert id="assignRoles" >
+        INSERT admin_role(admin_id,role_id)
+        VALUE
+        <foreach collection="roleIdList" item="roleId" separator=",">
+            (#{adminId},#{roleId})
+        </foreach>
+    </insert>
+
+<!--    void unAssignRoles(String adminId, List<String> roleIdList);-->
+    <delete id="unAssignRoles">
+        DELETE FROM admin_role
+        WHERE admin_id = #{adminId}
+        AND
+        role_id IN (
+            <foreach collection="roleIdList" item="roleId" separator=",">
+                #{roleId}
+            </foreach>
+        )
+    </delete>
+
+</mapper>
+
