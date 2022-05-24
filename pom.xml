@@ -16,6 +16,7 @@
         <module>crowd-entity</module>
         <module>crowd-user-consumer</module>
         <module>crowd-msm-provider</module>
+        <module>crowd-oss-porvider</module>
     </modules>
     <packaging>pom</packaging>
 

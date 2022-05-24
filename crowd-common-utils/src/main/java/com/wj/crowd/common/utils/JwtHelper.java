@@ -11,12 +11,12 @@ import java.util.Date;
  * @date 2022/4/1 - 15:06
  */
 public class JwtHelper {
-    private static long tokenExpiration = 24 * 60 * 60 * 1000;
-    private static String tokenSignKey = "wHospital";
+    private static long tokenExpiration = 6 * 60 * 60 * 1000;  // 设置过期时间
+    private static String tokenSignKey = "wCrowd";
 
     public static String createToken(String userId, String userName) {
         String token = Jwts.builder()
-                .setSubject("YYGH-USER")
+                .setSubject("Crowd-USER")
                 .setExpiration(new Date(System.currentTimeMillis() + tokenExpiration))
                 .claim("userId", userId)
                 .claim("userName", userName)

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 @Service
 @FeignClient(value = "crowd-msm", path = "/message")
 public interface MsmRemoteService {
-    @GetMapping("/send/login_code/remote/{phone}/{type}")
+    @GetMapping("/send/code/remote/{phone}/{type}")
     @ApiOperation("发送验证码")
     ResultEntity<String> sendCodeRemote(@PathVariable String phone, @PathVariable String type);
 }

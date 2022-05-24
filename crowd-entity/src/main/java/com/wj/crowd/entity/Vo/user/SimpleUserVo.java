@@ -22,4 +22,6 @@ public class SimpleUserVo {
     @ApiModelProperty(value = "认证状态（0：未认证，1：已认证）")
     private Integer authStatus;
 
+    @ApiModelProperty("登录后的token令牌")
+    private String token;
 }

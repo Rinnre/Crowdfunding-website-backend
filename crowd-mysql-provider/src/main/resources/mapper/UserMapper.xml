@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wj.crowd.mysql.mapper.UserMapper">
+
+    <select id="getUserById" resultType="com.wj.crowd.entity.Do.User">
+        SELECT uid,nick_name,avatar,auth_status
+        FROM user
+        WHERE uid =#{sponsor}
+        AND is_delete=0
+    </select>
+</mapper>

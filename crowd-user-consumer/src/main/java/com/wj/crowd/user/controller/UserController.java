@@ -29,6 +29,7 @@ import java.util.Objects;
 @RestController
 @ApiOperation("用户模块")
 @RequestMapping("/user")
+@CrossOrigin
 public class UserController {
 
     @Autowired
@@ -46,8 +47,7 @@ public class UserController {
 
     @PostMapping("/do/login")
     @ApiOperation("密码登录登录")
-    public ResultEntity<SimpleUserVo> doLogin(@RequestBody LoginAndRegisteredUserVo loginAndRegisteredUserVo,
-                                              HttpServletResponse response) {
+    public ResultEntity<SimpleUserVo> doLogin(@RequestBody LoginAndRegisteredUserVo loginAndRegisteredUserVo) {
         // 前端数据验证
         String phone = loginAndRegisteredUserVo.getPhone();
         String password = loginAndRegisteredUserVo.getPassword();
@@ -80,16 +80,15 @@ public class UserController {
 
         String token = JwtHelper.createToken(user.getUid(), user.getNickName());
 
-        Cookie cookie = new Cookie("token", token);
-        response.addCookie(cookie);
+        simpleUserVo.setToken(token);
 
         return ResultEntity.success(simpleUserVo);
     }
 
     @PostMapping("/do/login_or_register")
     @ApiOperation("手机登录注册")
-    public ResultEntity<SimpleUserVo> doRegistered(@RequestBody LoginAndRegisteredUserVo loginAndRegisteredUserVo,
-                                                   HttpServletResponse response) {
+    public ResultEntity<SimpleUserVo> doRegistered(@RequestBody LoginAndRegisteredUserVo loginAndRegisteredUserVo
+    ) {
         // 数据验证
         String phone = loginAndRegisteredUserVo.getPhone();
         String code = loginAndRegisteredUserVo.getCode();
@@ -136,8 +135,7 @@ public class UserController {
 
         String token = JwtHelper.createToken(user.getUid(), user.getNickName());
 
-        Cookie cookie = new Cookie("token", token);
-        response.addCookie(cookie);
+        simpleUserVo.setToken(token);
 
         // 删除使用过的验证码
         ResultEntity<String> stringResultEntity = commonRedisRemoteService.removeRedisKeyRemote(phone + CrowdConstant.REGISTER_AND_LOGIN_CODE);
@@ -223,7 +221,7 @@ public class UserController {
 
         // 更新验证码比对结果并移除验证码
         ResultEntity<String> stringResultEntity = commonRedisRemoteService.setRedisKeyValueRemote(uid + CrowdConstant.MODIFY_CODE, CrowdConstant.SUCCESS);
-        commonRedisRemoteService.removeRedisKeyRemote(phone+CrowdConstant.MODIFY_CODE);
+        commonRedisRemoteService.removeRedisKeyRemote(phone + CrowdConstant.MODIFY_CODE);
 
         if (!stringResultEntity.isSuccess()) {
             return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
@@ -239,31 +237,31 @@ public class UserController {
                                                @PathVariable("new_password") String newPassword) {
         // 判断验证码验证是否通过
         ResultEntity<String> redisStringValueRemoteByKey = commonRedisRemoteService.getRedisStringValueRemoteByKey(uid + CrowdConstant.MODIFY_CODE);
-        if(!redisStringValueRemoteByKey.isSuccess()){
-            return ResultEntity.build(null,ResultCodeEnum.NETWORK_ERROR);
+        if (!redisStringValueRemoteByKey.isSuccess()) {
+            return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
 
         String confirmResult = redisStringValueRemoteByKey.getData();
-        if(!CrowdConstant.SUCCESS.equals(confirmResult)){
-            return ResultEntity.build(null,ResultCodeEnum.DATA_ERROR);
+        if (!CrowdConstant.SUCCESS.equals(confirmResult)) {
+            return ResultEntity.build(null, ResultCodeEnum.DATA_ERROR);
         }
 
         // 更新密码
         ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(uid);
-        if(!userByUidRemote.isSuccess()){
-            return ResultEntity.build(null,ResultCodeEnum.NETWORK_ERROR);
+        if (!userByUidRemote.isSuccess()) {
+            return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
         User user = userByUidRemote.getData();
-        if(null==user){
-            return ResultEntity.build(null,ResultCodeEnum.DATA_ERROR);
+        if (null == user) {
+            return ResultEntity.build(null, ResultCodeEnum.DATA_ERROR);
         }
         // 密码加密
         newPassword = bCryptPasswordEncoder.encode(newPassword);
         user.setPassword(newPassword);
 
         ResultEntity<String> stringResultEntity = mysqlRemoteService.saveUserRemote(user);
-        if(!stringResultEntity.isSuccess()){
-            return ResultEntity.build(null,ResultCodeEnum.NETWORK_ERROR);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
         return ResultEntity.success();
     }
