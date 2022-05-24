@@ -20,11 +20,7 @@ spring:
         #最大阻塞等待时间(负数表示没限制)
         max-idle: 5
         min-idle: 0
-aliyun:
-  sms:
-    regionId: default
-    accessKeyId: LTAI5tAFECdpoySaEuARuTgZ
-    secret: dA7OY4IYo3RI5mrfkOmr3BconsKF7d
+
 
 server:
   port: 9531
