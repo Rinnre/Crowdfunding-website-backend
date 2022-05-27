@@ -19,6 +19,9 @@ public class SimpleUserVo {
     @ApiModelProperty(value = "头像")
     private String avatar;
 
+    @ApiModelProperty(value = "手机号")
+    private String Phone;
+
     @ApiModelProperty(value = "认证状态（0：未认证，1：已认证）")
     private Integer authStatus;
 

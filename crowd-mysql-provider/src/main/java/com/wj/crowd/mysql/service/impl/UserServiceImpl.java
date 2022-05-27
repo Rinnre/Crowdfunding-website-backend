@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -83,7 +84,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
         // 更新密码
         String password = userVo.getPassword();
-        if(null!=password){
+        if(null!=password&& !Objects.equals("",password)){
             user.setPassword(password);
         }
 
@@ -118,8 +119,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 数据更新
         BeanUtils.copyProperties(userAuthInfoVo,user);
 
-        // 更新认证状态为1：认证中
-        user.setAuthStatus(1);
+        // 更新认证状态为2：认证中
+        user.setAuthStatus(2);
 
         int updateResult = baseMapper.updateById(user);
 

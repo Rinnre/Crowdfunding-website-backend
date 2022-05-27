@@ -6,7 +6,7 @@ import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.Project;
 import com.wj.crowd.entity.Do.SimpleProject;
 import com.wj.crowd.entity.Vo.project.SearchProjectVo;
-import com.wj.crowd.entity.Vo.user.UpdateProjectVo;
+import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 import com.wj.crowd.mysql.service.api.ProjectService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;

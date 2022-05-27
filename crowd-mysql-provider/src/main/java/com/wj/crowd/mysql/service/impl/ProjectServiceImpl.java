@@ -9,7 +9,7 @@ import com.wj.crowd.entity.Do.Reward;
 import com.wj.crowd.entity.Do.SimpleProject;
 import com.wj.crowd.entity.Vo.project.ProjectDetailVo;
 import com.wj.crowd.entity.Vo.project.SearchProjectVo;
-import com.wj.crowd.entity.Vo.user.UpdateProjectVo;
+import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 import com.wj.crowd.mysql.mapper.ProjectMapper;
 import com.wj.crowd.mysql.service.api.ProjectDetailService;
 import com.wj.crowd.mysql.service.api.ProjectService;

@@ -1,4 +1,4 @@
-package com.wj.crowd.entity.Vo.user;
+package com.wj.crowd.entity.Vo.project;
 
 import com.wj.crowd.entity.Vo.project.ProjectDetailVo;
 import io.swagger.annotations.ApiModelProperty;

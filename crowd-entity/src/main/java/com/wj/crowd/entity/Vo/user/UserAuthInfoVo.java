@@ -27,4 +27,7 @@ public class UserAuthInfoVo {
 
     @ApiModelProperty(value = "反面证件照")
     private String backIdPicture;
+
+    @ApiModelProperty(value = "认证状态")
+    private Integer authStatus;
 }

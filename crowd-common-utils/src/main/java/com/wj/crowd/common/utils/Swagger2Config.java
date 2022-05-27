@@ -30,6 +30,18 @@ public class Swagger2Config {
                 .build();
 
     }
+    @Bean
+    public Docket ossApiConfig() {
+
+        return new Docket(DocumentationType.SWAGGER_2)
+                .groupName("ossApi")
+                .apiInfo(mysqlApiInfo())
+                .select()
+                //只显示api路径下的页面
+                .paths(Predicates.and(PathSelectors.regex("/oss/.*")))
+                .build();
+
+    }
 
     @Bean
     public Docket redisApiConfig() {

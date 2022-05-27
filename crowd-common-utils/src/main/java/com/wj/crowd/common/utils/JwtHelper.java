@@ -11,7 +11,7 @@ import java.util.Date;
  * @date 2022/4/1 - 15:06
  */
 public class JwtHelper {
-    private static long tokenExpiration = 6 * 60 * 60 * 1000;  // 设置过期时间
+    private static long tokenExpiration = 24 * 60 * 60 * 1000;  // 设置过期时间
     private static String tokenSignKey = "wCrowd";
 
     public static String createToken(String userId, String userName) {

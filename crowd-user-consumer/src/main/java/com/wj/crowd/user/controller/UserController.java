@@ -2,23 +2,38 @@ package com.wj.crowd.user.controller;
 
 import com.wj.crowd.api.msm.MsmRemoteService;
 import com.wj.crowd.api.mysql.MysqlRemoteService;
+import com.wj.crowd.api.oss.OssRemoteService;
 import com.wj.crowd.api.redis.CommonRedisRemoteService;
 import com.wj.crowd.common.constant.CrowdConstant;
 import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.common.utils.JwtHelper;
+import com.wj.crowd.entity.Do.Dynamic;
+import com.wj.crowd.entity.Do.Picture;
+import com.wj.crowd.entity.Do.ShippingAddress;
 import com.wj.crowd.entity.Do.User;
+import com.wj.crowd.entity.Vo.address.ShippingAddressVo;
+import com.wj.crowd.entity.Vo.dynamic.DynamicVo;
+import com.wj.crowd.entity.Vo.picture.PictureVo;
 import com.wj.crowd.entity.Vo.user.LoginAndRegisteredUserVo;
 import com.wj.crowd.entity.Vo.user.SimpleUserVo;
+import com.wj.crowd.entity.Vo.user.UserAuthInfoVo;
+import com.wj.crowd.entity.Vo.user.UserVo;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -43,6 +58,9 @@ public class UserController {
 
     @Autowired
     private MsmRemoteService msmRemoteService;
+
+    @Autowired
+    private OssRemoteService ossRemoteService;
 
 
     @PostMapping("/do/login")
@@ -166,14 +184,17 @@ public class UserController {
         return ResultEntity.success();
     }
 
-    @PostMapping("/modify/password/{uid}/{old_password}/{new_password}")
+    @PutMapping("/modify/password")
     @ApiOperation("修改密码")
-    public ResultEntity<String> modifyPassword(@PathVariable String uid,
-                                               @PathVariable("old_password") String oldPassword,
-                                               @PathVariable("new_password") String newPassword) {
+    public ResultEntity<String> modifyPassword(HttpServletRequest request,
+                                               @RequestBody Map<String,String> params) {
+
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
 
         // 查询用户信息
-        ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(uid);
+        ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(userId);
         if (!userByUidRemote.isSuccess()) {
             return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
@@ -182,6 +203,9 @@ public class UserController {
         if (null == user) {
             return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
+        String oldPassword = params.get("oldPassword");
+        String newPassword = params.get("newPassword");
+
         // 进行密码校验
         String password = user.getPassword();
         if (!bCryptPasswordEncoder.matches(oldPassword, password)) {
@@ -199,11 +223,18 @@ public class UserController {
 
     }
 
-    @GetMapping("/confirm/modify_code/{uid}/{phone}/{code}")
+    @PostMapping("/confirm/modify_code")
     @ApiOperation("验证修改操作验证码")
-    public ResultEntity<String> confirmModifyCode(@PathVariable String uid,
-                                                  @PathVariable String phone,
-                                                  @PathVariable String code) {
+    public ResultEntity<String> confirmModifyCode(HttpServletRequest request,
+                                                  @RequestBody Map<String,String> params) {
+
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        String phone = params.get("phone");
+        String code = params.get("code");
+
         // 获取redis中存储的验证码
         ResultEntity<String> redisStringValueRemoteByKey = commonRedisRemoteService.getRedisStringValueRemoteByKey(phone + CrowdConstant.MODIFY_CODE);
         if (!redisStringValueRemoteByKey.isSuccess()) {
@@ -220,7 +251,7 @@ public class UserController {
         }
 
         // 更新验证码比对结果并移除验证码
-        ResultEntity<String> stringResultEntity = commonRedisRemoteService.setRedisKeyValueRemote(uid + CrowdConstant.MODIFY_CODE, CrowdConstant.SUCCESS);
+        ResultEntity<String> stringResultEntity = commonRedisRemoteService.setRedisKeyValueRemote(userId + CrowdConstant.MODIFY_CODE, CrowdConstant.SUCCESS);
         commonRedisRemoteService.removeRedisKeyRemote(phone + CrowdConstant.MODIFY_CODE);
 
         if (!stringResultEntity.isSuccess()) {
@@ -231,12 +262,17 @@ public class UserController {
 
     }
 
-    @PostMapping("/modify/password/{uid}/{new_password}")
+    @PostMapping("/modify/password")
     @ApiOperation("通过手机验证码修改密码")
-    public ResultEntity<String> modifyPassword(@PathVariable String uid,
-                                               @PathVariable("new_password") String newPassword) {
+    public ResultEntity<String> modifyPasswordByPhone(HttpServletRequest request,
+                                               @RequestBody Map<String,String> params) {
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        String newPassword = params.get("newPassword");
         // 判断验证码验证是否通过
-        ResultEntity<String> redisStringValueRemoteByKey = commonRedisRemoteService.getRedisStringValueRemoteByKey(uid + CrowdConstant.MODIFY_CODE);
+        ResultEntity<String> redisStringValueRemoteByKey = commonRedisRemoteService.getRedisStringValueRemoteByKey(userId + CrowdConstant.MODIFY_CODE);
         if (!redisStringValueRemoteByKey.isSuccess()) {
             return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
@@ -247,7 +283,7 @@ public class UserController {
         }
 
         // 更新密码
-        ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(uid);
+        ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(userId);
         if (!userByUidRemote.isSuccess()) {
             return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
@@ -259,12 +295,287 @@ public class UserController {
         newPassword = bCryptPasswordEncoder.encode(newPassword);
         user.setPassword(newPassword);
 
-        ResultEntity<String> stringResultEntity = mysqlRemoteService.saveUserRemote(user);
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyUserRemote(user);
         if (!stringResultEntity.isSuccess()) {
             return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
         }
         return ResultEntity.success();
     }
 
+
+    @GetMapping("/get/dynamic/by/user_id")
+    @ApiOperation("查询用户动态")
+    public ResultEntity<List<DynamicVo>> getDynamicByUserId(HttpServletRequest request) {
+
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        // 远程调用查询用户动态接口
+        ResultEntity<List<Dynamic>> dynamicResult = mysqlRemoteService.getDynamicByUserId(userId);
+        if (!dynamicResult.isSuccess()) {
+            return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
+        }
+
+        // 数据转换
+        List<Dynamic> dynamicList = dynamicResult.getData();
+
+        if (dynamicList != null && dynamicList.size() > 0) {
+
+            List<DynamicVo> dynamicVos = new ArrayList<>();
+            dynamicList.forEach(dynamic -> {
+                DynamicVo dynamicVo = new DynamicVo();
+                BeanUtils.copyProperties(dynamic, dynamicVo);
+                List<Picture> pictureList = dynamic.getPictureList();
+                if (null != pictureList && pictureList.size() > 0) {
+                    List<PictureVo> pictureVos = new ArrayList<>();
+                    pictureList.forEach(picture -> {
+                        PictureVo pictureVo = new PictureVo();
+                        BeanUtils.copyProperties(picture, pictureVo);
+                        pictureVos.add(pictureVo);
+                    });
+                    dynamicVo.setPictureList(pictureVos);
+                }
+                dynamicVos.add(dynamicVo);
+            });
+            return ResultEntity.success(dynamicVos);
+        }
+        return ResultEntity.success();
+    }
+
+    @ApiOperation("删除动态")
+    @DeleteMapping("/remove/dynamic/{dynamic_id}")
+    public ResultEntity<String> removeDynamic(@PathVariable("dynamic_id") String dynamicId,
+                                              HttpServletRequest request) {
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        // 调用远程接口
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.removeDynamic(userId, dynamicId);
+
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
+        }
+        return ResultEntity.success();
+    }
+
+    // 用户认证
+    @ApiOperation("用户认证")
+    @PostMapping("/do/user/auth")
+    public ResultEntity<String> userAuth(@RequestBody UserAuthInfoVo userAuthInfoVo,
+                                         HttpServletRequest request) {
+        // 数据校验
+        if (null == userAuthInfoVo) {
+            return ResultEntity.build(null, ResultCodeEnum.DATA_ERROR);
+        }
+
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        // 更新用户认证信息
+        userAuthInfoVo.setUid(userId);
+        // 调用远程接口更新认证信息
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyAuthInfoRemote(userAuthInfoVo);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(stringResultEntity.getMessage(), ResultCodeEnum.NETWORK_ERROR);
+        }
+        return ResultEntity.success();
+    }
+
+    // 上传用户认证照片
+    @PostMapping(value = "/upload/picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiOperation("上传用户认证照片")
+    public ResultEntity<String> uploadPicture(MultipartFile file) {
+
+
+        // 调用远程接口上传图片
+        ResultEntity<String> stringResultEntity = ossRemoteService.fileUpload(file);
+        // 结果处理
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(stringResultEntity.getMessage(), ResultCodeEnum.NETWORK_ERROR);
+        }
+        String pictureUrl = stringResultEntity.getData();
+        if (null == pictureUrl) {
+            return ResultEntity.build(null, ResultCodeEnum.NETWORK_ERROR);
+        }
+
+        return ResultEntity.success(pictureUrl);
+    }
+
+    // 查询用户认证信息
+    @GetMapping("/get/user/auth/info")
+    @ApiOperation("查询用户认证信息")
+    public ResultEntity<UserAuthInfoVo> getUserAuthInfo(HttpServletRequest request) {
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        // 调用远程接口查询查询认证信息
+        ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(userId);
+
+        // 结果处理
+        if (!userByUidRemote.isSuccess()) {
+            return ResultEntity.fail();
+        }
+        User user = userByUidRemote.getData();
+
+        if (null != user) {
+            UserAuthInfoVo userAuthInfoVo = new UserAuthInfoVo();
+            BeanUtils.copyProperties(user, userAuthInfoVo);
+            // 认证信息模糊处理
+            String realName = userAuthInfoVo.getRealName();
+            String idNumber = userAuthInfoVo.getIdNumber();
+            String realNameFirst = realName.substring(0, 1);
+            String realNameLast = realName.substring(1);
+            realNameLast = realNameLast.replaceAll("[一-龟]", "*");
+
+            String idNumberFirst = idNumber.substring(0, 3);
+            String idNumberLast = idNumber.substring(3);
+            idNumberLast = idNumber.replaceAll("\\d", "*");
+
+            userAuthInfoVo.setFrontIdPicture(null);
+            userAuthInfoVo.setRealName(realNameFirst + realNameLast);
+            userAuthInfoVo.setIdNumber(idNumberFirst + idNumberLast);
+            return ResultEntity.success(userAuthInfoVo);
+        }
+
+        return ResultEntity.fail();
+    }
+
+    // 查询用户信息
+    @ApiOperation("查询用户信息")
+    @GetMapping("/get/user/info")
+    public ResultEntity<UserVo> getUserInfo(HttpServletRequest request) {
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(userId);
+
+        // 结果处理
+        if (!userByUidRemote.isSuccess()) {
+            return ResultEntity.fail();
+        }
+        User user = userByUidRemote.getData();
+
+        if(null==user){
+            return ResultEntity.fail();
+        }
+
+        // vo对象封装以及擦除不必要的信息
+
+        UserVo userVo = new UserVo();
+        BeanUtils.copyProperties(user,userVo);
+
+        userVo.setPassword("");
+        return ResultEntity.success(userVo);
+    }
+
+    // 修改用户信息
+    @PutMapping("/modify/use/info")
+    @ApiOperation("修改用户信息")
+    public ResultEntity<String> modifyUserInfo(@RequestBody UserVo userVo,
+                                               HttpServletRequest request){
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        User user = new User();
+        BeanUtils.copyProperties(userVo,user);
+        user.setUid(userId);
+
+        // 结果处理
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyUserRemote(user);
+        if(!stringResultEntity.isSuccess()){
+            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        }
+        return ResultEntity.success(stringResultEntity.getMessage());
+
+    }
+
+    // 用户地址管理
+    @GetMapping("/get/shipping/address")
+    @ApiOperation("获取用户所有地址信息")
+    public ResultEntity<List<ShippingAddressVo>> getShippingAddress(HttpServletRequest request){
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+        ResultEntity<List<ShippingAddress>> shippingAddressResult = mysqlRemoteService.getShippingAddress(userId);
+        if(!shippingAddressResult.isSuccess()){
+            return ResultEntity.fail();
+        }
+        List<ShippingAddress> shippingAddressList = shippingAddressResult.getData();
+
+        // 数据转换
+        List<ShippingAddressVo> shippingAddressVos = new ArrayList<>();
+        if(null!=shippingAddressList&&shippingAddressList.size()!=0){
+            shippingAddressList.forEach(shippingAddress -> {
+                ShippingAddressVo shippingAddressVo = new ShippingAddressVo();
+                BeanUtils.copyProperties(shippingAddress,shippingAddressVo);
+                shippingAddressVos.add(shippingAddressVo);
+            });
+        }
+        return ResultEntity.success(shippingAddressVos);
+    }
+
+    @PutMapping("/modify/shipping/address")
+    @ApiOperation("修改用户地址信息")
+    public ResultEntity<String> modifyShippingAddress(@RequestBody ShippingAddressVo shippingAddressVo){
+        if(null==shippingAddressVo){
+            return ResultEntity.build(null,ResultCodeEnum.DATA_ERROR);
+        }
+
+        // 数据转换
+        ShippingAddress shippingAddress = new ShippingAddress();
+        BeanUtils.copyProperties(shippingAddressVo,shippingAddress);
+
+        // 调用远程接口
+
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyShippingAddress(shippingAddress);
+        if(!stringResultEntity.isSuccess()){
+            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        }
+
+        return ResultEntity.success();
+    }
+    @PostMapping("/save/shipping/address")
+    @ApiOperation("新建收货地址")
+    public ResultEntity<String> saveShippingAddress(HttpServletRequest request,
+                                                    @RequestBody ShippingAddressVo shippingAddressVo){
+        if(null==shippingAddressVo){
+            return ResultEntity.build(null,ResultCodeEnum.DATA_ERROR);
+        }
+
+        // 从token中获取userId
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        // 数据转换
+        ShippingAddress shippingAddress = new ShippingAddress();
+        BeanUtils.copyProperties(shippingAddressVo,shippingAddress);
+
+        shippingAddress.setUid(userId);
+        // 调用远程接口
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.saveShippingAddress(shippingAddress);
+        if(!stringResultEntity.isSuccess()){
+            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        }
+
+        return ResultEntity.success();
+    }
+
+    @DeleteMapping("/remove/shipping/address/{addressId}")
+    @ApiOperation("删除收货地址")
+    public ResultEntity<String> removeShippingAddress(@PathVariable String addressId){
+        // 调用远程接口
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.removeShippingAddress(addressId);
+        if(!stringResultEntity.isSuccess()){
+            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        }
+
+        return ResultEntity.success();
+    }
 
 }

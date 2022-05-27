@@ -78,7 +78,7 @@ public class UserController {
 
     @PutMapping("/modify/auth_info/remote")
     @ApiOperation("更新认证信息")
-    public ResultEntity<String> modifyAuthInfoRemote(UserAuthInfoVo userAuthInfoVo) {
+    public ResultEntity<String> modifyAuthInfoRemote(@RequestBody UserAuthInfoVo userAuthInfoVo) {
         try {
             userService.modifyAuthInfo(userAuthInfoVo);
             return ResultEntity.success();
@@ -87,6 +87,8 @@ public class UserController {
             return ResultEntity.fail();
         }
     }
+
+
 
 }
 

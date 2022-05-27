@@ -5,7 +5,7 @@ import com.wj.crowd.entity.Do.Project;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wj.crowd.entity.Do.SimpleProject;
 import com.wj.crowd.entity.Vo.project.SearchProjectVo;
-import com.wj.crowd.entity.Vo.user.UpdateProjectVo;
+import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 
 /**
  * <p>
