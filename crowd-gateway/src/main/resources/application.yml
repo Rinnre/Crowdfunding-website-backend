@@ -18,6 +18,14 @@ spring:
           uri: lb://crowd-dynamic
           predicates:
             - Path=/dynamic/**
+        - id: crowd-project
+          uri: lb://crowd-project
+          predicates:
+            - Path=/project/**
+        - id: crowd-order
+          uri: lb://crowd-order
+          predicates:
+            - Path=/order/**
 
 server:
   port: 80

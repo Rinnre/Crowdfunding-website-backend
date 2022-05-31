@@ -1,5 +1,7 @@
 package com.wj.crowd.user.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.wj.crowd.api.msm.MsmRemoteService;
 import com.wj.crowd.api.mysql.MysqlRemoteService;
 import com.wj.crowd.api.oss.OssRemoteService;
@@ -9,13 +11,13 @@ import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.common.utils.JwtHelper;
-import com.wj.crowd.entity.Do.Dynamic;
-import com.wj.crowd.entity.Do.Picture;
-import com.wj.crowd.entity.Do.ShippingAddress;
-import com.wj.crowd.entity.Do.User;
+import com.wj.crowd.entity.Do.*;
 import com.wj.crowd.entity.Vo.address.ShippingAddressVo;
 import com.wj.crowd.entity.Vo.dynamic.DynamicVo;
 import com.wj.crowd.entity.Vo.picture.PictureVo;
+import com.wj.crowd.entity.Vo.project.ProjectDetailVo;
+import com.wj.crowd.entity.Vo.project.ProjectVo;
+import com.wj.crowd.entity.Vo.project.RewardVo;
 import com.wj.crowd.entity.Vo.user.LoginAndRegisteredUserVo;
 import com.wj.crowd.entity.Vo.user.SimpleUserVo;
 import com.wj.crowd.entity.Vo.user.UserAuthInfoVo;
@@ -576,6 +578,103 @@ public class UserController {
         }
 
         return ResultEntity.success();
+    }
+
+    @GetMapping("/get/user/project")
+    @ApiOperation("获取用户发起的项目信息")
+    public ResultEntity<List<ProjectVo>> getUserProject(HttpServletRequest request){
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        // 获取用户未完成的项目
+        ResultEntity<List<Object>> redisAllHashByKeyRemote = commonRedisRemoteService.getRedisAllHashByKeyRemote(userId + CrowdConstant.TEMPORARY_PROJECT);
+        if(!redisAllHashByKeyRemote.isSuccess()){
+            return ResultEntity.fail();
+        }
+        List<Object> projectData = redisAllHashByKeyRemote.getData();
+        List<ProjectVo> projectVos = new ArrayList<>();
+        if(projectData!=null){
+
+            projectData.forEach(data->{
+                Project project = JSON.parseObject(JSON.toJSONString(data), new TypeReference<Project>() {
+                });
+                ProjectVo projectVo = projectToProjectVo(project);
+                projectVos.add(projectVo);
+            });
+        }
+        // 从数据库中获取已经发布的和正在审核的项目
+        ResultEntity<List<Project>> projectByUserId = mysqlRemoteService.getProjectByUserId(userId);
+        if(!projectByUserId.isSuccess()){
+            return ResultEntity.fail();
+        }
+        List<Project> projectList = projectByUserId.getData();
+        if(null!=projectList&&projectList.size()!=0){
+            projectList.forEach(project -> {
+                ProjectVo projectVo = projectToProjectVo(project);
+                projectVos.add(projectVo);
+            });
+        }
+        return ResultEntity.success(projectVos);
+    }
+
+    @DeleteMapping("remove/project/{projectId}")
+    @ApiOperation("用户项目删除操作")
+    public ResultEntity<String> removeProjectById(@PathVariable String projectId){
+        return mysqlRemoteService.removeProjectById(projectId);
+    }
+
+
+    private ProjectVo projectToProjectVo(Project project) {
+        ProjectVo projectVo = new ProjectVo();
+        BeanUtils.copyProperties(project, projectVo);
+        List<Reward> rewards = project.getRewards();
+        // 项目回报
+        if (null != rewards && rewards.size() != 0) {
+            List<RewardVo> rewardVos = new ArrayList<>();
+            rewards.forEach(reward -> {
+                RewardVo rewardVo = new RewardVo();
+                BeanUtils.copyProperties(reward, rewardVo);
+
+                List<Picture> pictures = reward.getPicture();
+
+                if (null != pictures && pictures.size() != 0) {
+                    List<PictureVo> pictureVos = new ArrayList<>();
+
+                    pictures.forEach(picture -> {
+                        PictureVo pictureVo = new PictureVo();
+                        BeanUtils.copyProperties(picture, pictureVo);
+                        pictureVos.add(pictureVo);
+                    });
+                    rewardVo.setPictureVos(pictureVos);
+                }
+                rewardVos.add(rewardVo);
+            });
+            projectVo.setRewardVos(rewardVos);
+            // 项目详情
+            List<ProjectDetail> projectDetails = project.getProjectDetails();
+            if(null!=projectDetails&&projectDetails.size()!=0){
+                List<ProjectDetailVo> projectDetailVoList = new ArrayList<>();
+                projectDetails.forEach(projectDetail -> {
+                    ProjectDetailVo projectDetailVo = new ProjectDetailVo();
+                    BeanUtils.copyProperties(projectDetail,projectDetailVo);
+                    projectDetailVoList.add(projectDetailVo);
+                });
+                projectVo.setProjectDetailVos(projectDetailVoList);
+            }
+
+            // 项目辅助资料
+            List<Picture> projectSupportingList = project.getProjectSupportingList();
+            if(null!=projectSupportingList&&projectSupportingList.size()!=0){
+                List<PictureVo> projectSupportingVoList = new ArrayList<>();
+                projectSupportingList.forEach(projectSupporting->{
+                    PictureVo projectSupportingVo = new PictureVo();
+                    BeanUtils.copyProperties(projectSupporting,projectSupportingVo);
+                    projectSupportingVoList.add(projectSupportingVo);
+                });
+                projectVo.setProjectSupportingVoList(projectSupportingVoList);
+            }
+        }
+        return projectVo;
     }
 
 }

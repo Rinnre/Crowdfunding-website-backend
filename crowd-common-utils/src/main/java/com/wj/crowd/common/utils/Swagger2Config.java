@@ -26,7 +26,7 @@ public class Swagger2Config {
                 .apiInfo(mysqlApiInfo())
                 .select()
                 //只显示api路径下的页面
-                .paths(Predicates.and(PathSelectors.regex("/mysql/.*")))
+                .paths(Predicates.and(PathSelectors.regex("/.*")))
                 .build();
 
     }

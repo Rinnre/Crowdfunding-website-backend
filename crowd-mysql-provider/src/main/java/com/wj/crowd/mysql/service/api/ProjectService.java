@@ -7,6 +7,8 @@ import com.wj.crowd.entity.Do.SimpleProject;
 import com.wj.crowd.entity.Vo.project.SearchProjectVo;
 import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 
+import java.util.List;
+
 /**
  * <p>
  *  服务类
@@ -24,4 +26,8 @@ public interface ProjectService extends IService<Project> {
     Project getProjectByProjectId(String projectId);
 
     void modifyProjectRemote(UpdateProjectVo updateProjectVo);
+
+    List<Project> getProjectByUserId(String uid);
+
+    void removeProjectById(String projectId);
 }

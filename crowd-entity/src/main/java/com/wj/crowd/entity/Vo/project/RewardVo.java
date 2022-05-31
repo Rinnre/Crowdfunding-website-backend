@@ -1,7 +1,11 @@
 package com.wj.crowd.entity.Vo.project;
 
+import com.wj.crowd.entity.Do.Picture;
+import com.wj.crowd.entity.Vo.picture.PictureVo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @author wj
@@ -26,7 +30,7 @@ public class RewardVo {
     private String description;
 
     @ApiModelProperty(value = "回报图片")
-    private String picture;
+    private List<PictureVo> pictureVos;
 
     @ApiModelProperty(value = "是否包邮（0：部分地区不包邮，1：包邮）")
     private Integer postage;
@@ -39,6 +43,9 @@ public class RewardVo {
 
     @ApiModelProperty(value = "是否限量（-1：不限量，限量 0：售空，>1:有货）")
     private Integer limitNumber;
+
+    @ApiModelProperty(value = " 库存个数（-1：不限量）")
+    private Integer inventoryNumber;
 
     @ApiModelProperty(value = "是否限购（0：不限购，>1:限购n个）")
     private Integer limitBuy;

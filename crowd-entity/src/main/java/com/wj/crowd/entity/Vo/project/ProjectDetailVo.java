@@ -16,6 +16,9 @@ public class ProjectDetailVo {
     @ApiModelProperty(value = "所属项目id")
     private String projectId;
 
+    @ApiModelProperty(value = "图片顺序")
+    private Integer projectOrder;
+
     @ApiModelProperty(value = "项目详情图片")
     private String picturePath;
 

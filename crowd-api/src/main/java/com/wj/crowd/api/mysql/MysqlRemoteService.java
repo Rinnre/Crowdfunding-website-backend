@@ -3,7 +3,6 @@ package com.wj.crowd.api.mysql;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.*;
-import com.wj.crowd.entity.Vo.project.SearchProjectVo;
 import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 import com.wj.crowd.entity.Vo.user.UserAuthInfoVo;
 import io.swagger.annotations.ApiOperation;
@@ -55,8 +54,7 @@ public interface MysqlRemoteService {
     @PostMapping("/mysql/project/get/project/pages/remote/{page}/{size}")
     @ApiOperation("分页带条件查询所有项目")
     ResultEntity<Page<SimpleProject>> getProjectPagesRemote(@PathVariable Long page,
-                                                            @PathVariable Long size,
-                                                            @RequestBody(required = false) SearchProjectVo searchProjectVo);
+                                                            @PathVariable Long size);
 
     @GetMapping("/mysql/project/get/project/detail/remote/{project_id}")
     @ApiOperation("根据id查询项目详细信息")
@@ -91,4 +89,30 @@ public interface MysqlRemoteService {
     @DeleteMapping("/mysql/shipping-address/remove/shipping/address/{addressId}")
     @ApiOperation("删除收货地址")
     ResultEntity<String> removeShippingAddress(@PathVariable String addressId);
+
+    // 用户项目管理
+    @ApiOperation("获取用户发起的项目")
+    @GetMapping("/mysql/project/get/project/by/userId/remote/{uid}")
+    public ResultEntity<List<Project>> getProjectByUserId(@PathVariable String uid);
+
+    @DeleteMapping("/mysql/project/remove/project/{projectId}")
+    @ApiOperation("用户项目删除操作")
+    public ResultEntity<String> removeProjectById(@PathVariable String projectId);
+
+    // 订单信息
+    @ApiOperation("获取订单回报信息")
+    @GetMapping("/mysql/pay_order/get/reward/remote/by/{rewardId}")
+    public ResultEntity<Reward> getRewardByIdRemote(@PathVariable String rewardId);
+
+    @ApiOperation("新建订单")
+    @PostMapping("/mysql/pay_order/save/order/info")
+    public ResultEntity<String> saveOrderInfo(@RequestBody PayOrder payOrder);
+
+    @ApiOperation("获取订单详情")
+    @GetMapping("/mysql/pay_order/get/order/info/detail/remote/{orderId}")
+    public ResultEntity<PayOrder> getOrderInfoDetailRemote(@PathVariable String orderId);
+
+    @ApiOperation("修改订单信息")
+    @PostMapping("/mysql/pay_order/modify/order")
+    public ResultEntity<String> modifyOrderInfoDetailRemote(@RequestBody PayOrder payOrder);
 }

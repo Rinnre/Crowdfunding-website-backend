@@ -7,6 +7,8 @@ import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -35,6 +37,29 @@ public class CommonRedisController {
             return ResultEntity.fail(e.getMessage());
         }
 
+    }
+
+    @PostMapping("/set/key/object/remote")
+    public ResultEntity<String> setRedisKeyObjectRemote(@RequestParam("key") String key,
+                                                        @RequestBody Object objects) {
+        try {
+            commonRedisService.setRedisKeyObjectRemote(key, objects);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get/object/remote/by/key")
+    public ResultEntity<Object> getObject(@RequestParam("key") String key) {
+        try {
+            Object object = commonRedisService.getObject(key);
+            return ResultEntity.success(object);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
     }
 
     @PostMapping("/set/key/value/remote/with/timeout")
@@ -79,6 +104,65 @@ public class CommonRedisController {
             e.printStackTrace();
             return ResultEntity.fail(e.getMessage());
         }
+    }
 
+    @PostMapping("/set/redis/key/hash/remote")
+    public ResultEntity<String> setRedisKeyHashRemote(@RequestParam("key") String key,
+                                                      @RequestParam("hashKey") String hashKey,
+                                                      @RequestBody Object object) {
+        try {
+            commonRedisService.setRedisKeyHashRemote(key, hashKey, object);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get/redis/hash/remote/by/key")
+    public ResultEntity<Object> getRedisHashRemoteByKey(@RequestParam("key") String key,
+                                                        @RequestParam("hashKey") String hashKey) {
+        try {
+            Object object = commonRedisService.getRedisHashRemoteByKey(key, hashKey);
+            return ResultEntity.success(object);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/remove/redis/hash/remote/by/key")
+    public ResultEntity<String> removeRedisHashRemoteByKey(@RequestParam("key") String key,
+                                                           @RequestParam("hashKey") String hashKey) {
+        try {
+            commonRedisService.removeRedisHashRemoteByKey(key, hashKey);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
+
+    @GetMapping("/get/redis/all/hash/key/remote")
+    public ResultEntity<Boolean> getRedisAllHashKeyRemote(@RequestParam("key") String key,
+                                                               @RequestParam("hashKey")String hashKey){
+        try {
+            Boolean result = commonRedisService.getRedisAllHashKeyRemote(key,hashKey);
+            return ResultEntity.success(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+    }
+
+    @GetMapping("/get/redis/all/hash/by/key/remote")
+    public ResultEntity<List<Object>> getRedisAllHashByKeyRemote(@RequestParam("key") String key){
+        try {
+            List<Object> result = commonRedisService.getRedisAllHashByKeyRemote(key);
+            return ResultEntity.success(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
     }
 }

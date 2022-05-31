@@ -12,6 +12,8 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * <p>
  *  前端控制器
@@ -71,6 +73,30 @@ public class ProjectController {
     public ResultEntity<String> modifyProjectRemote(@RequestBody UpdateProjectVo updateProjectVo){
        try {
            projectService.modifyProjectRemote(updateProjectVo);
+           return ResultEntity.success();
+       } catch (Exception e) {
+           e.printStackTrace();
+           return ResultEntity.fail(e.getMessage());
+       }
+   }
+
+   @ApiOperation("获取用户发起的项目")
+   @GetMapping("/get/project/by/userId/remote/{uid}")
+   public ResultEntity<List<Project>> getProjectByUserId(@PathVariable String uid){
+       try {
+           List<Project> projectList = projectService.getProjectByUserId(uid);
+           return ResultEntity.success(projectList);
+       } catch (Exception e) {
+           e.printStackTrace();
+           return ResultEntity.fail();
+       }
+   }
+
+   @DeleteMapping("remove/project/{projectId}")
+   @ApiOperation("项目删除操作")
+   public ResultEntity<String> removeProjectById(@PathVariable String projectId){
+       try {
+           projectService.removeProjectById(projectId);
            return ResultEntity.success();
        } catch (Exception e) {
            e.printStackTrace();

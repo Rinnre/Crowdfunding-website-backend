@@ -16,10 +16,10 @@
         <module>crowd-entity</module>
         <module>crowd-user-consumer</module>
         <module>crowd-msm-provider</module>
-        <module>crowd-oss-porvider</module>
+        <module>crowd-oss-provider</module>
         <module>crowd-dynamic-consumer</module>
         <module>crowd-gateway</module>
-        <module>crowd-project-comsumer</module>
+        <module>crowd-project-consumer</module>
     </modules>
     <packaging>pom</packaging>
 

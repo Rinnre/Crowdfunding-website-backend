@@ -47,6 +47,7 @@ public class Project implements Serializable {
     @ApiModelProperty(value = "目标金额")
     private Double targetMoney;
 
+
     @ApiModelProperty(value = "已筹金额")
     private Double supportMoney;
 
@@ -69,11 +70,19 @@ public class Project implements Serializable {
     private String video;
 
     @ApiModelProperty(value = "项目发起人")
-    private User sponsor;
+    private String sponsor;
 
     @ApiModelProperty(value = "项目回报")
     @TableField(exist = false)
     private List<Reward> rewards;
+
+    @ApiModelProperty(value = "项目团队")
+    @TableField(exist = false)
+    private List<User> team;
+
+    @ApiModelProperty(value = "项目审核辅助资料")
+    @TableField(exist = false)
+    private List<Picture> projectSupportingList;
 
     @ApiModelProperty(value = "项目详情")
     @TableField(exist = false)

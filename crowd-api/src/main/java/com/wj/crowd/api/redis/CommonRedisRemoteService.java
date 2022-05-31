@@ -3,11 +3,9 @@ package com.wj.crowd.api.redis;
 import com.wj.crowd.common.result.ResultEntity;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -38,4 +36,31 @@ public interface CommonRedisRemoteService {
     @DeleteMapping("/remove/redis/key/remote")
     public ResultEntity<String> removeRedisKeyRemote(
             @RequestParam("key") String key);
+
+    @PostMapping("/set/key/object/remote")
+    public ResultEntity<String> setRedisKeyObjectRemote(@RequestParam("key") String key,
+                                                        @RequestBody Object objects);
+
+    @GetMapping("/get/object/remote/by/key")
+    public ResultEntity<Object> getObject(@RequestParam("key") String key);
+
+    @DeleteMapping("/remove/redis/hash/remote/by/key")
+    public ResultEntity<String> removeRedisHashRemoteByKey(@RequestParam("key") String key,
+                                                           @RequestParam("hashKey") String hashKey);
+
+    @GetMapping("/get/redis/hash/remote/by/key")
+    public ResultEntity<Object> getRedisHashRemoteByKey(@RequestParam("key") String key,
+                                                        @RequestParam("hashKey") String hashKey);
+
+    @PostMapping("/set/redis/key/hash/remote")
+    public ResultEntity<String> setRedisKeyHashRemote(@RequestParam("key") String key,
+                                                      @RequestParam("hashKey") String hashKey,
+                                                      @RequestBody Object object);
+
+    @GetMapping("/get/redis/all/hash/key/remote")
+    public ResultEntity<Boolean> getRedisAllHashKeyRemote(@RequestParam("key") String key,
+                                                          @RequestParam("hashKey")String hashKey);
+
+    @GetMapping("/get/redis/all/hash/by/key/remote")
+    public ResultEntity<List<Object>> getRedisAllHashByKeyRemote(@RequestParam("key") String key);
 }

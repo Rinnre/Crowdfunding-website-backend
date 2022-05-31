@@ -1,6 +1,10 @@
 package com.wj.crowd.entity.Vo.project;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.wj.crowd.entity.Do.Picture;
 import com.wj.crowd.entity.Do.User;
+import com.wj.crowd.entity.Vo.picture.PictureVo;
+import com.wj.crowd.entity.Vo.user.UserVo;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -55,7 +59,7 @@ public class ProjectVo {
     private String video;
 
     @ApiModelProperty(value = "项目发起人")
-    private User sponsor;
+    private UserVo sponsor;
 
     @ApiModelProperty(value = "项目回报")
     private List<RewardVo> rewardVos;
@@ -71,4 +75,12 @@ public class ProjectVo {
 
     @ApiModelProperty(value = "项目状态")
     private String status;
+
+    @ApiModelProperty(value = "项目团队")
+    @TableField(exist = false)
+    private List<UserVo> teamVo;
+
+    @ApiModelProperty(value = "项目审核辅助资料")
+    @TableField(exist = false)
+    private List<PictureVo> projectSupportingVoList;
 }

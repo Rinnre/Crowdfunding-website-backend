@@ -9,6 +9,8 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableField;
 import java.io.Serializable;
+import java.util.List;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -46,7 +48,8 @@ public class Reward implements Serializable {
     private String description;
 
     @ApiModelProperty(value = "回报图片")
-    private String picture;
+    @TableField(exist = false)
+    private List<Picture> picture;
 
     @ApiModelProperty(value = "是否包邮（0：部分地区不包邮，1：包邮）")
     private Integer postage;
@@ -59,6 +62,9 @@ public class Reward implements Serializable {
 
     @ApiModelProperty(value = "是否限量（-1：不限量，限量 0：售空，>1:有货）")
     private Integer limitNumber;
+
+    @ApiModelProperty(value = " 库存个数（-1：不限量）")
+    private Integer inventoryNumber;
 
     @ApiModelProperty(value = "是否限购（0：不限购，>1:限购n个）")
     private Integer limitBuy;

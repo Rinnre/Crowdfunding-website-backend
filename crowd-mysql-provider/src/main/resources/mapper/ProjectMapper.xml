@@ -5,13 +5,14 @@
         <id property="id" column="id"/>
         <result property="title" column="title"/>
         <result property="supportMoney" column="support_money"/>
+        <result property="supporterNumber" column="supporter_number"/>
         <result property="headPicture" column="head_picture"/>
         <result property="percentage" column="percentage"/>
         <association property="user" column="sponsor" select="com.wj.crowd.mysql.mapper.UserMapper.getUserById"/>
     </resultMap>
     <!--    List<SimpleProject> getProjectPages(@Param("page") Long page, @Param("size") Long size, @Param("searchProjectVo") SearchProjectVo searchProjectVo);-->
     <select id="getProjectPages" resultMap="simpleProjectResultMap">
-        SELECT title,support_money,head_picture,support_money/target_money*100 "percentage",sponsor
+        SELECT id,title,support_money,supporter_number,head_picture,support_money/target_money*100 "percentage",sponsor
         FROM project
         <if test="null!=searchProjectVo">
             <where>
@@ -74,8 +75,10 @@
         <result column="end_time" property="endTime"/>
         <result column="status" property="status"/>
         <association property="sponsor" column="sponsor" select="com.wj.crowd.mysql.mapper.UserMapper.getUserById"/>
-        <collection column="id"  property="rewards" select="com.wj.crowd.mysql.mapper.RewardMapper.getRewardsByProjectId"/>
-        <collection column="id" property="projectDetails" select="com.wj.crowd.mysql.mapper.ProjectDetailMapper.getProjectDetailsByProjectId"/>
+        <collection column="id" property="rewards"
+                    select="com.wj.crowd.mysql.mapper.RewardMapper.getRewardsByProjectId"/>
+        <collection column="id" property="projectDetails"
+                    select="com.wj.crowd.mysql.mapper.ProjectDetailMapper.getProjectDetailsByProjectId"/>
     </resultMap>
     <!--    Project getProjectByProjectId(String projectId);-->
     <select id="getProjectByProjectId" resultMap="projectDetailResultMap">

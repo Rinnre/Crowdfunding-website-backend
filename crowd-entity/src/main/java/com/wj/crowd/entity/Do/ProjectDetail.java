@@ -38,6 +38,9 @@ public class ProjectDetail implements Serializable {
     @ApiModelProperty(value = "项目详情类别（概述、产品说明...）")
     private String type;
 
+    @ApiModelProperty(value = "图片顺序")
+    private Integer projectOrder;
+
     @ApiModelProperty(value = "创建时间")
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;

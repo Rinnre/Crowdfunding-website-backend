@@ -1,16 +1,16 @@
 package com.wj.crowd.mysql.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wj.crowd.common.constant.CrowdConstant;
 import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
-import com.wj.crowd.entity.Do.Project;
-import com.wj.crowd.entity.Do.ProjectDetail;
-import com.wj.crowd.entity.Do.Reward;
-import com.wj.crowd.entity.Do.SimpleProject;
+import com.wj.crowd.entity.Do.*;
 import com.wj.crowd.entity.Vo.project.ProjectDetailVo;
 import com.wj.crowd.entity.Vo.project.SearchProjectVo;
 import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 import com.wj.crowd.mysql.mapper.ProjectMapper;
+import com.wj.crowd.mysql.service.api.PictureService;
 import com.wj.crowd.mysql.service.api.ProjectDetailService;
 import com.wj.crowd.mysql.service.api.ProjectService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -40,6 +40,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Autowired
     private ProjectDetailService projectDetailService;
+
+    @Autowired
+    private PictureService pictureService;
 
     /**
      * 开启事务
@@ -77,6 +80,16 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             throw new CrowdException(ResultCodeEnum.SAVE_DATA_ERROR);
         }
 
+        rewards.forEach(reward -> {
+            List<Picture> pictures = reward.getPicture();
+            if(null!=pictures&&pictures.size()!=0){
+                pictures.forEach(picture -> {
+                    picture.setForeignId(reward.getId());
+                });
+                pictureService.saveBatch(pictures);
+            }
+        });
+
         // 完善项目详情信息
         projectDetails.forEach(projectDetail -> {
             projectDetail.setProjectId(id);
@@ -88,6 +101,20 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         if (!saveProjectDetailResult) {
             throw new CrowdException(ResultCodeEnum.SAVE_DATA_ERROR);
         }
+        // 辅助审核信息
+        List<Picture> projectSupportingList = project.getProjectSupportingList();
+        if(null!=projectSupportingList&&projectSupportingList.size()!=0){
+
+            projectSupportingList.forEach(projectSupporting -> {
+                projectSupporting.setForeignId(id);
+            });
+            boolean saveBatchResult = pictureService.saveBatch(projectSupportingList);
+            if (!saveBatchResult) {
+                throw new CrowdException(ResultCodeEnum.SAVE_DATA_ERROR);
+            }
+        }
+
+
 
     }
 
@@ -128,7 +155,28 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
      */
     @Override
     public Project getProjectByProjectId(String projectId) {
-        Project project = baseMapper.getProjectByProjectId(projectId);
+        Project project = baseMapper.selectById(projectId);
+
+
+        // 回报
+        QueryWrapper<Reward> rewardQueryWrapper = new QueryWrapper<>();
+        rewardQueryWrapper.eq("project_id",project.getId());
+        List<Reward> rewards = rewardService.getBaseMapper().selectList(rewardQueryWrapper);
+        // 回报图片
+        rewards.forEach(reward -> {
+            QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
+            pictureQueryWrapper.eq("foreign_id",reward.getId());
+            pictureQueryWrapper.eq("type", CrowdConstant.PICTURE_TYPE_REWARD);
+
+            List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
+            reward.setPicture(pictureList);
+        });
+        project.setRewards(rewards);
+        // 详情
+        QueryWrapper<ProjectDetail> projectDetailQueryWrapper = new QueryWrapper<>();
+        projectDetailQueryWrapper.eq("project_id",project.getId());
+        List<ProjectDetail> projectDetails = projectDetailService.getBaseMapper().selectList(projectDetailQueryWrapper);
+        project.setProjectDetails(projectDetails);
         return project;
     }
 
@@ -195,10 +243,65 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         });
 
         if ( projectDetails.size() > 0) {
-
             projectDetailService.updateBatchById(projectDetails);
         }
 
+
+
+    }
+
+    @Override
+    public List<Project> getProjectByUserId(String uid) {
+        QueryWrapper<Project> projectQueryWrapper = new QueryWrapper<>();
+        projectQueryWrapper.eq("sponsor",uid);
+        List<Project> projectList = baseMapper.selectList(projectQueryWrapper);
+        // 查询回报、项目详情、辅助认证信息
+        projectList.forEach(project -> {
+            // 回报
+            QueryWrapper<Reward> rewardQueryWrapper = new QueryWrapper<>();
+            rewardQueryWrapper.eq("project_id",project.getId());
+            List<Reward> rewards = rewardService.getBaseMapper().selectList(rewardQueryWrapper);
+            // 回报图片
+            rewards.forEach(reward -> {
+                QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
+                pictureQueryWrapper.eq("foreign_id",reward.getId());
+                pictureQueryWrapper.eq("type", CrowdConstant.PICTURE_TYPE_REWARD);
+
+                List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
+                reward.setPicture(pictureList);
+            });
+            project.setRewards(rewards);
+            // 详情
+            QueryWrapper<ProjectDetail> projectDetailQueryWrapper = new QueryWrapper<>();
+            projectDetailQueryWrapper.eq("project_id",project.getId());
+            List<ProjectDetail> projectDetails = projectDetailService.getBaseMapper().selectList(projectDetailQueryWrapper);
+            project.setProjectDetails(projectDetails);
+
+            // 辅助认证信息
+            QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
+            pictureQueryWrapper.eq("foreign_id",project.getId());
+            pictureQueryWrapper.eq("type",CrowdConstant.PICTURE_TYPE_SUPPORTING);
+            List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
+            project.setProjectSupportingList(pictureList);
+        });
+        return projectList;
+    }
+
+    @Override
+    @Transactional(readOnly = false,propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
+    public void removeProjectById(String projectId) {
+        Project project = baseMapper.selectById(projectId);
+        String status = project.getStatus();
+        // 只允许删除准备中和未上线的项目
+        if(status.equals("2")||status.equals("3")){
+            throw new CrowdException(ResultCodeEnum.DELETE_DATA_ERROR);
+        }
+        // 删除项目
+        baseMapper.deleteById(projectId);
+        // 删除回报
+        // 删除回报图片
+
+        // 删除项目详情图片
 
     }
 }
