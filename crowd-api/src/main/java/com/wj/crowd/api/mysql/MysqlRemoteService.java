@@ -64,6 +64,11 @@ public interface MysqlRemoteService {
     @ApiOperation("根据id更新项目详细信息")
     ResultEntity<String> modifyProjectRemote(@RequestBody UpdateProjectVo updateProjectVo);
 
+    @ApiOperation("更新项目支持者信息")
+    @PostMapping("/mysql/project/modify/project/supporter/Info/{supportId}")
+    public ResultEntity<String> modifyProjectSupporter(@PathVariable String supportId,
+                                                       @RequestBody Project project);
+
     // 用户动态远程接口
     @PostMapping("/mysql/dynamic/save/dynamic")
     @ApiOperation("发布动态")
@@ -115,4 +120,8 @@ public interface MysqlRemoteService {
     @ApiOperation("修改订单信息")
     @PostMapping("/mysql/pay_order/modify/order")
     public ResultEntity<String> modifyOrderInfoDetailRemote(@RequestBody PayOrder payOrder);
+
+    @PostMapping("/mysql/pay_order/modify/reward/info/remote")
+    @ApiOperation("更新回报数量")
+    public ResultEntity<String> modifyReward(@RequestBody Reward reward);
 }

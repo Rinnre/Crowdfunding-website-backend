@@ -15,11 +15,13 @@
         <module>crowd-api</module>
         <module>crowd-entity</module>
         <module>crowd-user-consumer</module>
+        <module>crowd-order-consumer</module>
         <module>crowd-msm-provider</module>
         <module>crowd-oss-provider</module>
         <module>crowd-dynamic-consumer</module>
         <module>crowd-gateway</module>
         <module>crowd-project-consumer</module>
+        <module>crowd-pay-consumer</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -160,6 +162,13 @@
                 <artifactId>mybatis-plus-generator</artifactId>
                 <version>3.4.0</version>
             </dependency>
+            <!-- 支付宝支付 -->
+            <dependency>
+                <groupId>com.alipay.sdk</groupId>
+                <artifactId>alipay-sdk-java</artifactId>
+                <version>4.15.14.ALL</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

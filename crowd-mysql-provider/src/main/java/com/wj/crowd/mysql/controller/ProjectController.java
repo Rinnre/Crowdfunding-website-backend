@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author w
@@ -31,7 +31,7 @@ public class ProjectController {
 
     @PostMapping("/save/project/remote")
     @ApiOperation("新建项目")
-    public ResultEntity<String> saveProjectRemote(@RequestBody Project project){
+    public ResultEntity<String> saveProjectRemote(@RequestBody Project project) {
         try {
             projectService.saveProject(project);
             return ResultEntity.success();
@@ -45,9 +45,9 @@ public class ProjectController {
     @ApiOperation("分页带条件查询所有项目")
     public ResultEntity<Page<SimpleProject>> getProjectPagesRemote(@PathVariable Long page,
                                                                    @PathVariable Long size,
-                                                                   @RequestBody(required = false) SearchProjectVo searchProjectVo){
+                                                                   @RequestBody(required = false) SearchProjectVo searchProjectVo) {
         try {
-            Page<SimpleProject> projectPages =projectService.getProjectPages(page,size,searchProjectVo);
+            Page<SimpleProject> projectPages = projectService.getProjectPages(page, size, searchProjectVo);
             return ResultEntity.success(projectPages);
         } catch (Exception e) {
             e.printStackTrace();
@@ -58,7 +58,7 @@ public class ProjectController {
 
     @GetMapping("/get/project/detail/remote/{project_id}")
     @ApiOperation("根据id查询项目详细信息")
-    public ResultEntity<Project> getProjectByProjectIdRemote(@PathVariable("project_id") String projectId){
+    public ResultEntity<Project> getProjectByProjectIdRemote(@PathVariable("project_id") String projectId) {
         try {
             Project project = projectService.getProjectByProjectId(projectId);
             return ResultEntity.success(project);
@@ -68,41 +68,55 @@ public class ProjectController {
         }
     }
 
-   @PutMapping("/modify/project/remote")
-   @ApiOperation("根据id更新项目详细信息")
-    public ResultEntity<String> modifyProjectRemote(@RequestBody UpdateProjectVo updateProjectVo){
-       try {
-           projectService.modifyProjectRemote(updateProjectVo);
-           return ResultEntity.success();
-       } catch (Exception e) {
-           e.printStackTrace();
-           return ResultEntity.fail(e.getMessage());
-       }
-   }
+    @PutMapping("/modify/project/remote")
+    @ApiOperation("根据id更新项目详细信息")
+    public ResultEntity<String> modifyProjectRemote(@RequestBody UpdateProjectVo updateProjectVo) {
+        try {
+            projectService.modifyProjectRemote(updateProjectVo);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
 
-   @ApiOperation("获取用户发起的项目")
-   @GetMapping("/get/project/by/userId/remote/{uid}")
-   public ResultEntity<List<Project>> getProjectByUserId(@PathVariable String uid){
-       try {
-           List<Project> projectList = projectService.getProjectByUserId(uid);
-           return ResultEntity.success(projectList);
-       } catch (Exception e) {
-           e.printStackTrace();
-           return ResultEntity.fail();
-       }
-   }
+    @ApiOperation("获取用户发起的项目")
+    @GetMapping("/get/project/by/userId/remote/{uid}")
+    public ResultEntity<List<Project>> getProjectByUserId(@PathVariable String uid) {
+        try {
+            List<Project> projectList = projectService.getProjectByUserId(uid);
+            return ResultEntity.success(projectList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+    }
 
-   @DeleteMapping("remove/project/{projectId}")
-   @ApiOperation("项目删除操作")
-   public ResultEntity<String> removeProjectById(@PathVariable String projectId){
-       try {
-           projectService.removeProjectById(projectId);
-           return ResultEntity.success();
-       } catch (Exception e) {
-           e.printStackTrace();
-           return ResultEntity.fail(e.getMessage());
-       }
-   }
+    @DeleteMapping("remove/project/{projectId}")
+    @ApiOperation("项目删除操作")
+    public ResultEntity<String> removeProjectById(@PathVariable String projectId) {
+        try {
+            projectService.removeProjectById(projectId);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
+
+    @ApiOperation("更新项目支持者信息")
+    @PostMapping("/modify/project/supporter/Info/{supportId}")
+    public ResultEntity<String> modifyProjectSupporter(@PathVariable String supportId,
+                                                       @RequestBody Project project) {
+
+        try {
+            projectService.modifyProjectSupporter(supportId,project);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+    }
 
 
 }

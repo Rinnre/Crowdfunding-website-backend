@@ -20,6 +20,12 @@ public class PayOrderVo {
     @ApiModelProperty(value = "订单流水号")
     private String payNum;
 
+    @ApiModelProperty(value = "项目id")
+    private String projectId;
+
+    @ApiModelProperty(value = "下单用户id")
+    private String uid;
+
     @ApiModelProperty(value = "订单总金额")
     private Double orderAmount;
 

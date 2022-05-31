@@ -31,5 +31,5 @@ public class RabbitConstant {
     public static final String ORDER_EXCHANGE_NAME = "user.order.exchange";
     public static final String ORDER_ROUTING_KEY = "order";
 
-    public static final Integer ORDER_TTL = 30000;
+    public static final Integer ORDER_TTL = 600000;
 }

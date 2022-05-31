@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wj.crowd.mysql.mapper.DynamicMapper">
+    <resultMap id="dynamicResultMap" type="com.wj.crowd.entity.Do.Dynamic">
+        <id column="id" property="id"/>
+        <result column="content" property="content"/>
+        <result column="create_time" property="createTime"/>
+        <collection property="pictureList" column="id" select="getPictureByDynamicId"/>
+    </resultMap>
+<!--    List<Dynamic> getDynamicByUserId(String userId);-->
+    <select id="getDynamicByUserId" resultMap="dynamicResultMap" >
+        SELECT id,content,create_time
+        FROM dynamic
+        WHERE uid = #{userId}
+        AND is_delete = 0
+    </select>
+
+    <select id="getPictureByDynamicId" resultType="com.wj.crowd.entity.Do.Picture">
+        SELECT id,picture_path
+        FROM picture
+        WHERE foreign_id = #{id}
+        AND type = "dynamic"
+        AND is_delete = 0
+    </select>
+</mapper>

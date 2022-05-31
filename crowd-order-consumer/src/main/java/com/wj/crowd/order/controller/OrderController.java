@@ -71,12 +71,19 @@ public class OrderController {
     // 下单
     @ApiOperation("保存订单信息")
     @PostMapping("/save/order/info")
-    public ResultEntity<String> saveOrderInfo(@RequestBody PayOrderVo payOrderVo){
+    public ResultEntity<String> saveOrderInfo(HttpServletRequest request,
+                                              @RequestBody PayOrderVo payOrderVo){
+
         // 数据校验
         if(null== payOrderVo){
             return ResultEntity.fail("订单数据异常！");
-
         }
+
+        // 获取下单用户id
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        payOrderVo.setUid(userId);
 
         PayOrder payOrder = new PayOrder();
         BeanUtils.copyProperties(payOrderVo, payOrder);

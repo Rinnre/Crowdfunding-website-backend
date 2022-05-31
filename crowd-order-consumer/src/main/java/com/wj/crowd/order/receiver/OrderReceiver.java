@@ -5,6 +5,7 @@ import com.wj.crowd.api.mysql.MysqlRemoteService;
 import com.wj.crowd.common.constant.CrowdConstant;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.PayOrder;
+import com.wj.crowd.entity.Do.Reward;
 import com.wj.crowd.rabbitmq.constant.RabbitConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -35,23 +36,39 @@ public class OrderReceiver {
         // 查找数据库订单状态
         log.info(orderId);
         ResultEntity<PayOrder> orderInfoDetailRemote = mysqlRemoteService.getOrderInfoDetailRemote(orderId);
-        if(!orderInfoDetailRemote.isSuccess()){
+        if (!orderInfoDetailRemote.isSuccess()) {
             log.info("查询订单状态失败！");
             return;
         }
         // 未支付订单设置为取消订单
         PayOrder payOrder = orderInfoDetailRemote.getData();
 
-        if(Objects.equals(payOrder.getOrderStatus(), CrowdConstant.ORDER_STATUS_UNPAID)){
+        if (Objects.equals(payOrder.getOrderStatus(), CrowdConstant.ORDER_STATUS_UNPAID)) {
             payOrder.setOrderStatus(CrowdConstant.ORDER_STATUS_CANCEL);
+            ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyOrderInfoDetailRemote(payOrder);
+            if (!stringResultEntity.isSuccess()) {
+                log.info("更新订单状态失败！");
+                return;
+            }
+            // 限量回报修改数量
+            String rewardId = payOrder.getRewardId();
+            ResultEntity<Reward> rewardByIdRemote = mysqlRemoteService.getRewardByIdRemote(rewardId);
+            if(!rewardByIdRemote.isSuccess()){
+                log.info("获取回报信息失败！");
+                return;
+            }
+            Reward reward = rewardByIdRemote.getData();
+            if(reward.getLimitNumber()!=-1){
+                Integer inventoryNumber = reward.getInventoryNumber();
+                reward.setInventoryNumber(Math.toIntExact(inventoryNumber + payOrder.getRewardCount()));
+                ResultEntity<String> rewardStringResultEntity = mysqlRemoteService.modifyReward(reward);
+                if(!rewardStringResultEntity.isSuccess()){
+                    log.info("回报数量更新失败");
+                }
+            }
+            log.info("订单状态已修改");
         }
-
-        ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyOrderInfoDetailRemote(payOrder);
-        if(!stringResultEntity.isSuccess()){
-            log.info("更新订单状态失败！");
-            return;
-        }
-        log.info("订单状态已修改");
+        log.info("订单已被处理");
 
 
     }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wj.crowd.mysql.mapper.PayOrderMapper">
+<!--    !&#45;&#45;    Boolean saveOrder(Order payOrder);&ndash;&gt;-->
+    <insert id="saveOrder" >
+        INSERT INTO `pay_order`  ( id,  order_amount,consignee_name,consignee_phone,consignee_email,consignee_address, reward_id, reward_count,  order_status, create_time, update_time )
+        VALUES(#{id},#{orderAmount},#{rewardId},#{consigneeName},#{consigneePhone},#{consigneeEmail},#{consigneeAddress},#{rewardCount},#{orderStatus},#{createTime},#{updateTime})
+    </insert>
+</mapper>

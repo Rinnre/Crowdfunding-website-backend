@@ -30,4 +30,6 @@ public interface ProjectService extends IService<Project> {
     List<Project> getProjectByUserId(String uid);
 
     void removeProjectById(String projectId);
+
+    void modifyProjectSupporter(String supportId, Project project);
 }

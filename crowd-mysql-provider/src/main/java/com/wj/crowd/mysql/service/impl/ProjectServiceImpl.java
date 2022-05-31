@@ -304,4 +304,21 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         // 删除项目详情图片
 
     }
+
+    /**
+     *
+     * @param supportId
+     * @param project
+     */
+    @Override
+    @Transactional(readOnly = false,propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
+    public void modifyProjectSupporter(String supportId, Project project) {
+        int result = baseMapper.updateById(project);
+        if(result<0){
+            throw new CrowdException(ResultCodeEnum.UPDATE_DATA_ERROR);
+        }
+
+        baseMapper.modifyProjectSupporter(supportId,project.getId());
+
+    }
 }

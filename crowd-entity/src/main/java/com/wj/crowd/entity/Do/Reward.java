@@ -38,6 +38,7 @@ public class Reward implements Serializable {
     @ApiModelProperty(value = "所属项目id")
     private String projectId;
 
+
     @ApiModelProperty(value = "回报标题")
     private String title;
 

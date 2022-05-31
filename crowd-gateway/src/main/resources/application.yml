@@ -26,6 +26,10 @@ spring:
           uri: lb://crowd-order
           predicates:
             - Path=/order/**
+        - id: crowd-pay
+          uri: lb://crowd-pay
+          predicates:
+            - Path=/pay/**
 
 server:
   port: 80

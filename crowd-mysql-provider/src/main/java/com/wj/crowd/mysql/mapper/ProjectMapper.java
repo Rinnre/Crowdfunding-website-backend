@@ -23,4 +23,6 @@ public interface ProjectMapper extends BaseMapper<Project> {
     Long getProjectPagesCount( @Param("searchProjectVo") SearchProjectVo searchProjectVo);
 
     Project getProjectByProjectId(String projectId);
+
+    void modifyProjectSupporter(String supportId, String id);
 }
