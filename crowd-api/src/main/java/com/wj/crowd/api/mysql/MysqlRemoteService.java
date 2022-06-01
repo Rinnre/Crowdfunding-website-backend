@@ -3,6 +3,8 @@ package com.wj.crowd.api.mysql;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.*;
+import com.wj.crowd.entity.Vo.comment.CommentFormVo;
+import com.wj.crowd.entity.Vo.project.SearchProjectVo;
 import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 import com.wj.crowd.entity.Vo.user.UserAuthInfoVo;
 import io.swagger.annotations.ApiOperation;
@@ -11,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author wj
@@ -55,6 +58,12 @@ public interface MysqlRemoteService {
     @ApiOperation("分页带条件查询所有项目")
     ResultEntity<Page<SimpleProject>> getProjectPagesRemote(@PathVariable Long page,
                                                             @PathVariable Long size);
+
+    @PostMapping("/mysql/project/get/project/pages/remote/{page}/{size}")
+    @ApiOperation("分页带条件查询所有项目")
+    ResultEntity<Page<SimpleProject>> getProjectPagesRemote(@PathVariable Long page,
+                                                            @PathVariable Long size,
+                                                            @RequestBody(required = false) SearchProjectVo searchProjectVo);
 
     @GetMapping("/mysql/project/get/project/detail/remote/{project_id}")
     @ApiOperation("根据id查询项目详细信息")
@@ -124,4 +133,21 @@ public interface MysqlRemoteService {
     @PostMapping("/mysql/pay_order/modify/reward/info/remote")
     @ApiOperation("更新回报数量")
     public ResultEntity<String> modifyReward(@RequestBody Reward reward);
+
+    // 评论管理
+    @ApiOperation(value = "根据查询对象获取评论列表")
+    @GetMapping("/mysql/comments/getCommentList/{sourceId}/{sourceType}")
+    public ResultEntity<Map<String, Object>> getCommentList(@PathVariable String sourceId,
+                                                            @PathVariable String sourceType);
+
+
+    @ApiOperation(value = "添加评论")
+    @PostMapping("/mysql/comments/addComment")
+    public ResultEntity<String> addComment(@RequestBody CommentFormVo commentFormVo);
+
+    @ApiOperation(value = "根据评论编号删除评论信息")
+    @DeleteMapping("/mysql/comments/removeComment/{commentId}/{uid}")
+    public ResultEntity<String> removeComment(@PathVariable String commentId,
+                                              @PathVariable String uid);
+
 }

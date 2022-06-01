@@ -131,7 +131,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         List<SimpleProject> simpleProjects = baseMapper.getProjectPages(page - 1, size, searchProjectVo);
 
         // 手动设置分页数据
-        Page<SimpleProject> simpleProjectPage = new Page<>();
+        Page<SimpleProject> simpleProjectPage = new Page<>(page,size);
         simpleProjectPage.setRecords(simpleProjects);
         // 设置当前页
         simpleProjectPage.setCurrent(page);

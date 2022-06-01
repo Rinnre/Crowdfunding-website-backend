@@ -2,8 +2,6 @@ package com.wj.crowd.project.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.api.R;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.api.mysql.MysqlRemoteService;
 import com.wj.crowd.api.redis.CommonRedisRemoteService;
@@ -12,12 +10,14 @@ import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.common.utils.JwtHelper;
 import com.wj.crowd.entity.Do.*;
+import com.wj.crowd.entity.Vo.comment.CommentFormVo;
 import com.wj.crowd.entity.Vo.picture.PictureVo;
 import com.wj.crowd.entity.Vo.project.*;
 import com.wj.crowd.entity.Vo.user.SimpleUserVo;
 import com.wj.crowd.entity.Vo.user.UserVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author wj
@@ -330,15 +331,48 @@ public class ProjectController {
     public ResultEntity<Page<SimpleProjectVo>> getSimpleProjectInfoList(@PathVariable Long page,
                                                                         @PathVariable Long size,
                                                                         @RequestBody(required = false) SearchProjectVo searchProjectVo) {
-        ResultEntity<Page<SimpleProject>> projectPagesRemote = mysqlRemoteService.getProjectPagesRemote(page, size);
+        ResultEntity<Page<SimpleProject>> projectPagesRemote;
+        if (null == searchProjectVo) {
+            projectPagesRemote = mysqlRemoteService.getProjectPagesRemote(page, size);
+        } else {
+            String status = searchProjectVo.getStatus();
+            String type = searchProjectVo.getType();
+            String sortMethods = searchProjectVo.getSortMethods();
+
+            if(CrowdConstant.PROJECT_TYPE_ALL.equals(type)){
+                searchProjectVo.setType(null);
+            }
+
+            if(CrowdConstant.PROJECT_SORT_METHOD_TIME.equals(sortMethods)){
+                searchProjectVo.setSortMethods(CrowdConstant.PROJECT_ORDER_BY_TIME);
+            }else if(CrowdConstant.PROJECT_SORT_METHOD_MONEY.equals(sortMethods)){
+                searchProjectVo.setSortMethods(CrowdConstant.PROJECT_ORDER_BY_MONEY);
+            }else if(CrowdConstant.PROJECT_SORT_METHOD_COMMENT.equals(CrowdConstant.PROJECT_SORT_METHOD_COMMENT)){
+                searchProjectVo.setSortMethods(CrowdConstant.PROJECT_ORDER_BY_COMMENT);
+            }else{
+                searchProjectVo.setSortMethods(null);
+            }
+
+            if(CrowdConstant.PROJECT_STATUS_SUCCESS.equals(status)){
+                searchProjectVo.setStatus(CrowdConstant.PROJECT_STATUS_SUCCESS_NUMBER);
+            }else if(CrowdConstant.PROJECT_STATUS_ING.equals(status)){
+                searchProjectVo.setStatus(CrowdConstant.PROJECT_STATUS_ING_NUMBER);
+            }else {
+                searchProjectVo.setStatus(null);
+            }
+            projectPagesRemote = mysqlRemoteService.getProjectPagesRemote(page, size, searchProjectVo);
+        }
         if (!projectPagesRemote.isSuccess()) {
             return ResultEntity.fail();
         }
 
         Page<SimpleProject> simpleProjectPage = projectPagesRemote.getData();
-        Page<SimpleProjectVo> simpleProjectVoPage = new Page<>();
+        Page<SimpleProjectVo> simpleProjectVoPage = new Page<>(page,size);
 
         BeanUtils.copyProperties(simpleProjectVoPage, simpleProjectVoPage);
+        simpleProjectVoPage.setTotal(simpleProjectPage.getTotal());
+
+
         List<SimpleProjectVo> simpleProjectVos = new ArrayList<>();
         for (SimpleProject simpleProject : simpleProjectPage.getRecords()) {
             User user = simpleProject.getUser();
@@ -438,5 +472,43 @@ public class ProjectController {
             }
         }
         return projectVo;
+    }
+
+    // 发布项目评论
+    @PostMapping("/add/comment/to/project")
+    @ApiOperation("发布项目评论")
+    public ResultEntity<String> addCommentToProject(@RequestBody CommentFormVo commentFormVo, HttpServletRequest request) {
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+        commentFormVo.setSourceType(CrowdConstant.COMMENT_TYPE_PROJECT);
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.addComment(commentFormVo);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.fail(stringResultEntity.getMessage());
+        }
+        return ResultEntity.success();
+    }
+
+    @DeleteMapping("/remove/comment/by/{commentId}")
+    @ApiOperation("删除评论")
+    public ResultEntity<String> removeCommentById(@PathVariable String commentId, HttpServletRequest request) {
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+        ResultEntity<String> stringResultEntity = mysqlRemoteService.removeComment(commentId, userId);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.fail(stringResultEntity.getMessage());
+        }
+        return ResultEntity.success();
+    }
+
+    @GetMapping("/get/comments/by/{projectId}")
+    @ApiOperation("获取项目评论")
+    public ResultEntity<Map<String, Object>> getCommentsByProjectId(@PathVariable String projectId, HttpServletRequest request) {
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+        ResultEntity<Map<String, Object>> stringResultEntity = mysqlRemoteService.getCommentList(projectId, CrowdConstant.COMMENT_TYPE_PROJECT);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.fail();
+        }
+        return ResultEntity.success(stringResultEntity.getData());
     }
 }
