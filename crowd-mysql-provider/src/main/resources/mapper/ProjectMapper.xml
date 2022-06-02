@@ -28,7 +28,15 @@
                 AND is_delete=0
             </where>
             <if test="null!=searchProjectVo.sortMethods">
-                ORDER BY #{searchProjectVo.sortMethods} DESC
+                <if test="'comment_number'==searchProjectVo.sortMethods">
+                    ORDER BY comment_number DESC
+                </if>
+                <if test="'start_time'==searchProjectVo.sortMethods">
+                    ORDER BY start_time DESC
+                </if>
+                <if test="'support_money'==searchProjectVo.sortMethods">
+                    ORDER BY support_money DESC
+                </if>
             </if>
         </if>
         LIMIT #{page},#{size}
@@ -87,7 +95,7 @@
         WHERE id = #{projectId}
         AND is_delete = 0
     </select>
-<!--    void modifyProjectSupporter(String supportId, String id);-->
+    <!--    void modifyProjectSupporter(String supportId, String id);-->
     <insert id="modifyProjectSupporter">
         INSERT project_user (project_id,user_id,type)
         VALUES(#{id},#{supportId},'support')
