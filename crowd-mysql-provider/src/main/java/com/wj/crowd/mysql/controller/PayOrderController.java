@@ -5,11 +5,14 @@ import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.PayOrder;
 import com.wj.crowd.entity.Do.Reward;
+import com.wj.crowd.entity.Vo.order.PayOrderVo;
 import com.wj.crowd.mysql.service.api.PayOrderService;
 import com.wj.crowd.mysql.service.api.RewardService;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <p>
@@ -99,6 +102,19 @@ public class PayOrderController {
             e.printStackTrace();
             return ResultEntity.fail(e.getMessage());
         }
+    }
+
+    @ApiOperation("查询用户所有订单信息")
+    @GetMapping("/get/user/order/info/{uid}")
+    public ResultEntity<List<PayOrderVo>> getUserOrderInfo(@PathVariable String uid,@RequestParam(required = false) String orderStatus){
+        try {
+            List<PayOrderVo> payOrderVoList = payOrderService.getUserOrderInfo(uid,orderStatus);
+            return ResultEntity.success(payOrderVoList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+
     }
 }
 

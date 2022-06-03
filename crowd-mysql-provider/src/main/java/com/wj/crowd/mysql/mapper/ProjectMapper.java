@@ -25,4 +25,8 @@ public interface ProjectMapper extends BaseMapper<Project> {
     Project getProjectByProjectId(String projectId);
 
     void modifyProjectSupporter(String supportId, String id);
+
+    Long getTotalProjectSupportNumber(String uid);
+
+    Double getTotalProjectSupportMoney(String uid);
 }

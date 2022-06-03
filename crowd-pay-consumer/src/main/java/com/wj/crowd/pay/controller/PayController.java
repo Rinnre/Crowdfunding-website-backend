@@ -29,10 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * @author wj
@@ -123,6 +121,7 @@ public class PayController {
             String valueStr = "";
             for (int i = 0; i < values.length; i++) {
                 valueStr = (i == values.length - 1) ? valueStr + values[i]
+
                         : valueStr + values[i] + ",";
             }
             //乱码解决，这段代码在出现乱码时使用
@@ -156,6 +155,7 @@ public class PayController {
             PayOrder payOrder = new PayOrder();
             payOrder.setId(outTradeNo);
             payOrder.setPayNum(tradeNo);
+            payOrder.setPayTime(LocalDateTime.now());
             payOrder.setOrderStatus(CrowdConstant.ORDER_STATUS_PENDING_SHIPMENT);
             ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyOrderInfoDetailRemote(payOrder);
             if (!stringResultEntity.isSuccess()) {

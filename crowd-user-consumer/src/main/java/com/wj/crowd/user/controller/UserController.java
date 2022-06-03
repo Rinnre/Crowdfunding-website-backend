@@ -2,6 +2,7 @@ package com.wj.crowd.user.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.extension.api.R;
 import com.wj.crowd.api.msm.MsmRemoteService;
 import com.wj.crowd.api.mysql.MysqlRemoteService;
 import com.wj.crowd.api.oss.OssRemoteService;
@@ -14,6 +15,7 @@ import com.wj.crowd.common.utils.JwtHelper;
 import com.wj.crowd.entity.Do.*;
 import com.wj.crowd.entity.Vo.address.ShippingAddressVo;
 import com.wj.crowd.entity.Vo.dynamic.DynamicVo;
+import com.wj.crowd.entity.Vo.order.PayOrderVo;
 import com.wj.crowd.entity.Vo.picture.PictureVo;
 import com.wj.crowd.entity.Vo.project.ProjectDetailVo;
 import com.wj.crowd.entity.Vo.project.ProjectVo;
@@ -189,7 +191,7 @@ public class UserController {
     @PutMapping("/modify/password")
     @ApiOperation("修改密码")
     public ResultEntity<String> modifyPassword(HttpServletRequest request,
-                                               @RequestBody Map<String,String> params) {
+                                               @RequestBody Map<String, String> params) {
 
         // 从token中获取userId
         String token = request.getHeader("token");
@@ -228,7 +230,7 @@ public class UserController {
     @PostMapping("/confirm/modify_code")
     @ApiOperation("验证修改操作验证码")
     public ResultEntity<String> confirmModifyCode(HttpServletRequest request,
-                                                  @RequestBody Map<String,String> params) {
+                                                  @RequestBody Map<String, String> params) {
 
         // 从token中获取userId
         String token = request.getHeader("token");
@@ -267,7 +269,7 @@ public class UserController {
     @PostMapping("/modify/password")
     @ApiOperation("通过手机验证码修改密码")
     public ResultEntity<String> modifyPasswordByPhone(HttpServletRequest request,
-                                               @RequestBody Map<String,String> params) {
+                                                      @RequestBody Map<String, String> params) {
         // 从token中获取userId
         String token = request.getHeader("token");
         String userId = JwtHelper.getUserId(token);
@@ -338,6 +340,11 @@ public class UserController {
                     });
                     dynamicVo.setPictureList(pictureVos);
                 }
+                // 封装发起人Vo对象
+                SimpleUserVo simpleUserVo = new SimpleUserVo();
+                User user = dynamic.getUser();
+                BeanUtils.copyProperties(user, simpleUserVo);
+                dynamicVo.setUser(simpleUserVo);
                 dynamicVos.add(dynamicVo);
             });
             return ResultEntity.success(dynamicVos);
@@ -462,14 +469,14 @@ public class UserController {
         }
         User user = userByUidRemote.getData();
 
-        if(null==user){
+        if (null == user) {
             return ResultEntity.fail();
         }
 
         // vo对象封装以及擦除不必要的信息
 
         UserVo userVo = new UserVo();
-        BeanUtils.copyProperties(user,userVo);
+        BeanUtils.copyProperties(user, userVo);
 
         userVo.setPassword("");
         return ResultEntity.success(userVo);
@@ -479,19 +486,19 @@ public class UserController {
     @PutMapping("/modify/use/info")
     @ApiOperation("修改用户信息")
     public ResultEntity<String> modifyUserInfo(@RequestBody UserVo userVo,
-                                               HttpServletRequest request){
+                                               HttpServletRequest request) {
         // 从token中获取userId
         String token = request.getHeader("token");
         String userId = JwtHelper.getUserId(token);
 
         User user = new User();
-        BeanUtils.copyProperties(userVo,user);
+        BeanUtils.copyProperties(userVo, user);
         user.setUid(userId);
 
         // 结果处理
         ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyUserRemote(user);
-        if(!stringResultEntity.isSuccess()){
-            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(stringResultEntity.getMessage(), ResultCodeEnum.NETWORK_ERROR);
         }
         return ResultEntity.success(stringResultEntity.getMessage());
 
@@ -500,22 +507,22 @@ public class UserController {
     // 用户地址管理
     @GetMapping("/get/shipping/address")
     @ApiOperation("获取用户所有地址信息")
-    public ResultEntity<List<ShippingAddressVo>> getShippingAddress(HttpServletRequest request){
+    public ResultEntity<List<ShippingAddressVo>> getShippingAddress(HttpServletRequest request) {
         // 从token中获取userId
         String token = request.getHeader("token");
         String userId = JwtHelper.getUserId(token);
         ResultEntity<List<ShippingAddress>> shippingAddressResult = mysqlRemoteService.getShippingAddress(userId);
-        if(!shippingAddressResult.isSuccess()){
+        if (!shippingAddressResult.isSuccess()) {
             return ResultEntity.fail();
         }
         List<ShippingAddress> shippingAddressList = shippingAddressResult.getData();
 
         // 数据转换
         List<ShippingAddressVo> shippingAddressVos = new ArrayList<>();
-        if(null!=shippingAddressList&&shippingAddressList.size()!=0){
+        if (null != shippingAddressList && shippingAddressList.size() != 0) {
             shippingAddressList.forEach(shippingAddress -> {
                 ShippingAddressVo shippingAddressVo = new ShippingAddressVo();
-                BeanUtils.copyProperties(shippingAddress,shippingAddressVo);
+                BeanUtils.copyProperties(shippingAddress, shippingAddressVo);
                 shippingAddressVos.add(shippingAddressVo);
             });
         }
@@ -524,30 +531,31 @@ public class UserController {
 
     @PutMapping("/modify/shipping/address")
     @ApiOperation("修改用户地址信息")
-    public ResultEntity<String> modifyShippingAddress(@RequestBody ShippingAddressVo shippingAddressVo){
-        if(null==shippingAddressVo){
-            return ResultEntity.build(null,ResultCodeEnum.DATA_ERROR);
+    public ResultEntity<String> modifyShippingAddress(@RequestBody ShippingAddressVo shippingAddressVo) {
+        if (null == shippingAddressVo) {
+            return ResultEntity.build(null, ResultCodeEnum.DATA_ERROR);
         }
 
         // 数据转换
         ShippingAddress shippingAddress = new ShippingAddress();
-        BeanUtils.copyProperties(shippingAddressVo,shippingAddress);
+        BeanUtils.copyProperties(shippingAddressVo, shippingAddress);
 
         // 调用远程接口
 
         ResultEntity<String> stringResultEntity = mysqlRemoteService.modifyShippingAddress(shippingAddress);
-        if(!stringResultEntity.isSuccess()){
-            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(stringResultEntity.getMessage(), ResultCodeEnum.NETWORK_ERROR);
         }
 
         return ResultEntity.success();
     }
+
     @PostMapping("/save/shipping/address")
     @ApiOperation("新建收货地址")
     public ResultEntity<String> saveShippingAddress(HttpServletRequest request,
-                                                    @RequestBody ShippingAddressVo shippingAddressVo){
-        if(null==shippingAddressVo){
-            return ResultEntity.build(null,ResultCodeEnum.DATA_ERROR);
+                                                    @RequestBody ShippingAddressVo shippingAddressVo) {
+        if (null == shippingAddressVo) {
+            return ResultEntity.build(null, ResultCodeEnum.DATA_ERROR);
         }
 
         // 从token中获取userId
@@ -556,13 +564,13 @@ public class UserController {
 
         // 数据转换
         ShippingAddress shippingAddress = new ShippingAddress();
-        BeanUtils.copyProperties(shippingAddressVo,shippingAddress);
+        BeanUtils.copyProperties(shippingAddressVo, shippingAddress);
 
         shippingAddress.setUid(userId);
         // 调用远程接口
         ResultEntity<String> stringResultEntity = mysqlRemoteService.saveShippingAddress(shippingAddress);
-        if(!stringResultEntity.isSuccess()){
-            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(stringResultEntity.getMessage(), ResultCodeEnum.NETWORK_ERROR);
         }
 
         return ResultEntity.success();
@@ -570,11 +578,11 @@ public class UserController {
 
     @DeleteMapping("/remove/shipping/address/{addressId}")
     @ApiOperation("删除收货地址")
-    public ResultEntity<String> removeShippingAddress(@PathVariable String addressId){
+    public ResultEntity<String> removeShippingAddress(@PathVariable String addressId) {
         // 调用远程接口
         ResultEntity<String> stringResultEntity = mysqlRemoteService.removeShippingAddress(addressId);
-        if(!stringResultEntity.isSuccess()){
-            return ResultEntity.build(stringResultEntity.getMessage(),ResultCodeEnum.NETWORK_ERROR);
+        if (!stringResultEntity.isSuccess()) {
+            return ResultEntity.build(stringResultEntity.getMessage(), ResultCodeEnum.NETWORK_ERROR);
         }
 
         return ResultEntity.success();
@@ -582,20 +590,20 @@ public class UserController {
 
     @GetMapping("/get/user/project")
     @ApiOperation("获取用户发起的项目信息")
-    public ResultEntity<List<ProjectVo>> getUserProject(HttpServletRequest request){
+    public ResultEntity<List<ProjectVo>> getUserProject(HttpServletRequest request) {
         String token = request.getHeader("token");
         String userId = JwtHelper.getUserId(token);
 
         // 获取用户未完成的项目
         ResultEntity<List<Object>> redisAllHashByKeyRemote = commonRedisRemoteService.getRedisAllHashByKeyRemote(userId + CrowdConstant.TEMPORARY_PROJECT);
-        if(!redisAllHashByKeyRemote.isSuccess()){
+        if (!redisAllHashByKeyRemote.isSuccess()) {
             return ResultEntity.fail();
         }
         List<Object> projectData = redisAllHashByKeyRemote.getData();
         List<ProjectVo> projectVos = new ArrayList<>();
-        if(projectData!=null){
+        if (projectData != null) {
 
-            projectData.forEach(data->{
+            projectData.forEach(data -> {
                 Project project = JSON.parseObject(JSON.toJSONString(data), new TypeReference<Project>() {
                 });
                 ProjectVo projectVo = projectToProjectVo(project);
@@ -604,11 +612,11 @@ public class UserController {
         }
         // 从数据库中获取已经发布的和正在审核的项目
         ResultEntity<List<Project>> projectByUserId = mysqlRemoteService.getProjectByUserId(userId);
-        if(!projectByUserId.isSuccess()){
+        if (!projectByUserId.isSuccess()) {
             return ResultEntity.fail();
         }
         List<Project> projectList = projectByUserId.getData();
-        if(null!=projectList&&projectList.size()!=0){
+        if (null != projectList && projectList.size() != 0) {
             projectList.forEach(project -> {
                 ProjectVo projectVo = projectToProjectVo(project);
                 projectVos.add(projectVo);
@@ -619,8 +627,54 @@ public class UserController {
 
     @DeleteMapping("remove/project/{projectId}")
     @ApiOperation("用户项目删除操作")
-    public ResultEntity<String> removeProjectById(@PathVariable String projectId){
+    public ResultEntity<String> removeProjectById(@PathVariable String projectId) {
         return mysqlRemoteService.removeProjectById(projectId);
+    }
+
+    // 用户订单信息查看
+    @ApiOperation("查询用户所有订单信息")
+    @GetMapping("/get/user/order/info")
+    public ResultEntity<List<PayOrderVo>> getUserOrderInfo(HttpServletRequest request, @RequestParam(required = false) String orderStatus) {
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        ResultEntity<List<PayOrderVo>> userOrderInfo = mysqlRemoteService.getUserOrderInfo(userId, orderStatus);
+
+        if (!userOrderInfo.isSuccess()) {
+            return ResultEntity.fail();
+        }
+
+        return userOrderInfo;
+    }
+
+    // 用户个人中心首页信息
+    @ApiOperation("用户个人中心首页信息")
+    @GetMapping("/get/user/simple/project/info")
+    public ResultEntity<Map<String, Object>> getUserSimpleProjectInfo(HttpServletRequest request) {
+        String token = request.getHeader("token");
+        String userId = JwtHelper.getUserId(token);
+
+        ResultEntity<User> userByUidRemote = mysqlRemoteService.getUserByUidRemote(userId);
+        if (!userByUidRemote.isSuccess()) {
+            return ResultEntity.fail();
+        }
+        User user = userByUidRemote.getData();
+        UserVo userVo = new UserVo();
+        BeanUtils.copyProperties(user, userVo);
+        userVo.setPassword(null);
+
+        ResultEntity<Map<String, Object>> userSimpleProjectInfo = mysqlRemoteService.getUserSimpleProjectInfo(userId);
+
+        if (!userSimpleProjectInfo.isSuccess()) {
+            return ResultEntity.fail();
+        }
+
+        Map<String, Object> data = userSimpleProjectInfo.getData();
+
+        data.put("userInfo", userVo);
+
+        return ResultEntity.success(data);
+
     }
 
 
@@ -652,11 +706,11 @@ public class UserController {
             projectVo.setRewardVos(rewardVos);
             // 项目详情
             List<ProjectDetail> projectDetails = project.getProjectDetails();
-            if(null!=projectDetails&&projectDetails.size()!=0){
+            if (null != projectDetails && projectDetails.size() != 0) {
                 List<ProjectDetailVo> projectDetailVoList = new ArrayList<>();
                 projectDetails.forEach(projectDetail -> {
                     ProjectDetailVo projectDetailVo = new ProjectDetailVo();
-                    BeanUtils.copyProperties(projectDetail,projectDetailVo);
+                    BeanUtils.copyProperties(projectDetail, projectDetailVo);
                     projectDetailVoList.add(projectDetailVo);
                 });
                 projectVo.setProjectDetailVos(projectDetailVoList);
@@ -664,11 +718,11 @@ public class UserController {
 
             // 项目辅助资料
             List<Picture> projectSupportingList = project.getProjectSupportingList();
-            if(null!=projectSupportingList&&projectSupportingList.size()!=0){
+            if (null != projectSupportingList && projectSupportingList.size() != 0) {
                 List<PictureVo> projectSupportingVoList = new ArrayList<>();
-                projectSupportingList.forEach(projectSupporting->{
+                projectSupportingList.forEach(projectSupporting -> {
                     PictureVo projectSupportingVo = new PictureVo();
-                    BeanUtils.copyProperties(projectSupporting,projectSupportingVo);
+                    BeanUtils.copyProperties(projectSupporting, projectSupportingVo);
                     projectSupportingVoList.add(projectSupportingVo);
                 });
                 projectVo.setProjectSupportingVoList(projectSupportingVoList);

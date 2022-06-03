@@ -23,8 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -55,7 +59,7 @@ public class ProjectController {
         }
         Object data = redisHashRemoteByKey.getData();
         if (null == data) {
-            return ResultEntity.fail();
+            return ResultEntity.success();
         }
 
         Project project = JSON.parseObject(JSON.toJSONString(data), new TypeReference<Project>() {
@@ -339,15 +343,17 @@ public class ProjectController {
             String type = searchProjectVo.getType();
             String sortMethods = searchProjectVo.getSortMethods();
 
+            // 项目类型
             if(CrowdConstant.PROJECT_TYPE_ALL.equals(type)){
                 searchProjectVo.setType(null);
             }
 
+            // 项目排序
             if(CrowdConstant.PROJECT_SORT_METHOD_TIME.equals(sortMethods)){
                 searchProjectVo.setSortMethods(CrowdConstant.PROJECT_ORDER_BY_TIME);
             }else if(CrowdConstant.PROJECT_SORT_METHOD_MONEY.equals(sortMethods)){
                 searchProjectVo.setSortMethods(CrowdConstant.PROJECT_ORDER_BY_MONEY);
-            }else if(CrowdConstant.PROJECT_SORT_METHOD_COMMENT.equals(CrowdConstant.PROJECT_SORT_METHOD_COMMENT)){
+            }else if(CrowdConstant.PROJECT_SORT_METHOD_COMMENT.equals(sortMethods)){
                 searchProjectVo.setSortMethods(CrowdConstant.PROJECT_ORDER_BY_COMMENT);
             }else{
                 searchProjectVo.setSortMethods(null);
@@ -420,6 +426,25 @@ public class ProjectController {
         return ResultEntity.success(projectVo);
     }
 
+    // 设置项目开始时间
+    @PostMapping("/set/project/start/time/{projectId}/{startTime}/{endTime}")
+    @ApiOperation("设置项目开始时间")
+    public ResultEntity<String> setProjectStartTime(@PathVariable String projectId,
+                                                    @PathVariable(required = false) String startTime,
+                                                    @PathVariable String endTime){
+        UpdateProjectVo updateProjectVo = new UpdateProjectVo();
+        updateProjectVo.setId(projectId);
+
+        endTime = endTime.replace("GMT", "").replaceAll("\\(.*\\)", "").trim() ;
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("EEE MMM dd yyyy HH:mm:ss Z", Locale.ENGLISH);
+        updateProjectVo.setStartTime(LocalDateTime.now());
+        updateProjectVo.setEndTime(LocalDateTime.parse(endTime,df));
+        updateProjectVo.setStatus(CrowdConstant.PROJECT_STATUS_ING_NUMBER);
+
+        return mysqlRemoteService.modifyProjectRemote(updateProjectVo);
+
+    }
+
 
     private ProjectVo projectToProjectVo(Project project) {
         ProjectVo projectVo = new ProjectVo();
@@ -487,6 +512,8 @@ public class ProjectController {
         }
         return ResultEntity.success();
     }
+
+
 
     @DeleteMapping("/remove/comment/by/{commentId}")
     @ApiOperation("删除评论")

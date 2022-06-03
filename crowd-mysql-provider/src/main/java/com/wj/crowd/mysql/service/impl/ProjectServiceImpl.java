@@ -17,12 +17,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wj.crowd.mysql.service.api.RewardService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -82,7 +86,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
         rewards.forEach(reward -> {
             List<Picture> pictures = reward.getPicture();
-            if(null!=pictures&&pictures.size()!=0){
+            if (null != pictures && pictures.size() != 0) {
                 pictures.forEach(picture -> {
                     picture.setForeignId(reward.getId());
                 });
@@ -103,7 +107,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         }
         // 辅助审核信息
         List<Picture> projectSupportingList = project.getProjectSupportingList();
-        if(null!=projectSupportingList&&projectSupportingList.size()!=0){
+        if (null != projectSupportingList && projectSupportingList.size() != 0) {
 
             projectSupportingList.forEach(projectSupporting -> {
                 projectSupporting.setForeignId(id);
@@ -113,7 +117,6 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 throw new CrowdException(ResultCodeEnum.SAVE_DATA_ERROR);
             }
         }
-
 
 
     }
@@ -131,7 +134,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         List<SimpleProject> simpleProjects = baseMapper.getProjectPages(page - 1, size, searchProjectVo);
 
         // 手动设置分页数据
-        Page<SimpleProject> simpleProjectPage = new Page<>(page,size);
+        Page<SimpleProject> simpleProjectPage = new Page<>(page, size);
         simpleProjectPage.setRecords(simpleProjects);
         // 设置当前页
         simpleProjectPage.setCurrent(page);
@@ -160,12 +163,12 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
         // 回报
         QueryWrapper<Reward> rewardQueryWrapper = new QueryWrapper<>();
-        rewardQueryWrapper.eq("project_id",project.getId());
+        rewardQueryWrapper.eq("project_id", project.getId());
         List<Reward> rewards = rewardService.getBaseMapper().selectList(rewardQueryWrapper);
         // 回报图片
         rewards.forEach(reward -> {
             QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
-            pictureQueryWrapper.eq("foreign_id",reward.getId());
+            pictureQueryWrapper.eq("foreign_id", reward.getId());
             pictureQueryWrapper.eq("type", CrowdConstant.PICTURE_TYPE_REWARD);
 
             List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
@@ -174,7 +177,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         project.setRewards(rewards);
         // 详情
         QueryWrapper<ProjectDetail> projectDetailQueryWrapper = new QueryWrapper<>();
-        projectDetailQueryWrapper.eq("project_id",project.getId());
+        projectDetailQueryWrapper.eq("project_id", project.getId());
         List<ProjectDetail> projectDetails = projectDetailService.getBaseMapper().selectList(projectDetailQueryWrapper);
         project.setProjectDetails(projectDetails);
         return project;
@@ -225,46 +228,57 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             project.setVideo(video);
         }
 
+        // 更新项目详情
+
+        List<ProjectDetailVo> projectDetailVos = projectVo.getProjectDetailVos();
+        if(null!=projectDetailVos&&projectDetailVos.size()!=0){
+
+            List<ProjectDetail> projectDetails = new ArrayList<>();
+
+            projectDetailVos.forEach(projectDetailVo -> {
+                ProjectDetail projectDetail = new ProjectDetail();
+                BeanUtils.copyProperties(projectDetailVo, projectDetail);
+                projectDetails.add(projectDetail);
+            });
+
+            if (projectDetails.size() > 0) {
+                projectDetailService.updateBatchById(projectDetails);
+            }
+        }
+        // 设置项目开始时间
+        LocalDateTime startTime = projectVo.getStartTime();
+        LocalDateTime endTime = projectVo.getEndTime();
+        if(null!=startTime&&null!=endTime){
+            project.setStartTime(startTime);
+            project.setEndTime(endTime);
+        }
+        // 更新项目状态
+        if(null!=projectVo.getStatus()){
+            project.setStatus(projectVo.getStatus());
+        }
         // 更新数据库数据
         int updateResult = baseMapper.updateById(project);
         if (updateResult <= 0) {
             throw new CrowdException(ResultCodeEnum.UPDATE_DATA_ERROR);
         }
-        // 更新项目详情
-
-        List<ProjectDetailVo> projectDetailVos = projectVo.getProjectDetailVos();
-        // projectDetailVo -> projectDetail
-        List<ProjectDetail> projectDetails = new ArrayList<>();
-
-        projectDetailVos.forEach(projectDetailVo -> {
-            ProjectDetail projectDetail = new ProjectDetail();
-            BeanUtils.copyProperties(projectDetailVo,projectDetail);
-            projectDetails.add(projectDetail);
-        });
-
-        if ( projectDetails.size() > 0) {
-            projectDetailService.updateBatchById(projectDetails);
-        }
-
-
 
     }
 
     @Override
     public List<Project> getProjectByUserId(String uid) {
         QueryWrapper<Project> projectQueryWrapper = new QueryWrapper<>();
-        projectQueryWrapper.eq("sponsor",uid);
+        projectQueryWrapper.eq("sponsor", uid);
         List<Project> projectList = baseMapper.selectList(projectQueryWrapper);
         // 查询回报、项目详情、辅助认证信息
         projectList.forEach(project -> {
             // 回报
             QueryWrapper<Reward> rewardQueryWrapper = new QueryWrapper<>();
-            rewardQueryWrapper.eq("project_id",project.getId());
+            rewardQueryWrapper.eq("project_id", project.getId());
             List<Reward> rewards = rewardService.getBaseMapper().selectList(rewardQueryWrapper);
             // 回报图片
             rewards.forEach(reward -> {
                 QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
-                pictureQueryWrapper.eq("foreign_id",reward.getId());
+                pictureQueryWrapper.eq("foreign_id", reward.getId());
                 pictureQueryWrapper.eq("type", CrowdConstant.PICTURE_TYPE_REWARD);
 
                 List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
@@ -273,14 +287,14 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             project.setRewards(rewards);
             // 详情
             QueryWrapper<ProjectDetail> projectDetailQueryWrapper = new QueryWrapper<>();
-            projectDetailQueryWrapper.eq("project_id",project.getId());
+            projectDetailQueryWrapper.eq("project_id", project.getId());
             List<ProjectDetail> projectDetails = projectDetailService.getBaseMapper().selectList(projectDetailQueryWrapper);
             project.setProjectDetails(projectDetails);
 
             // 辅助认证信息
             QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
-            pictureQueryWrapper.eq("foreign_id",project.getId());
-            pictureQueryWrapper.eq("type",CrowdConstant.PICTURE_TYPE_SUPPORTING);
+            pictureQueryWrapper.eq("foreign_id", project.getId());
+            pictureQueryWrapper.eq("type", CrowdConstant.PICTURE_TYPE_SUPPORTING);
             List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
             project.setProjectSupportingList(pictureList);
         });
@@ -288,12 +302,12 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     @Override
-    @Transactional(readOnly = false,propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void removeProjectById(String projectId) {
         Project project = baseMapper.selectById(projectId);
         String status = project.getStatus();
         // 只允许删除准备中和未上线的项目
-        if(status.equals("2")||status.equals("3")){
+        if (status.equals("2") || status.equals("3")) {
             throw new CrowdException(ResultCodeEnum.DELETE_DATA_ERROR);
         }
         // 删除项目
@@ -306,19 +320,42 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     }
 
     /**
-     *
      * @param supportId
      * @param project
      */
     @Override
-    @Transactional(readOnly = false,propagation = Propagation.REQUIRES_NEW,rollbackFor = Exception.class)
+    @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
     public void modifyProjectSupporter(String supportId, Project project) {
         int result = baseMapper.updateById(project);
-        if(result<0){
+        if (result < 0) {
             throw new CrowdException(ResultCodeEnum.UPDATE_DATA_ERROR);
         }
 
-        baseMapper.modifyProjectSupporter(supportId,project.getId());
+        baseMapper.modifyProjectSupporter(supportId, project.getId());
 
+    }
+
+    @Override
+    public Map<String, Object> getUserSimpleProjectInfo(String uid) {
+
+        Map<String, Object> resultMap = new HashMap<>();
+
+        Long projectSupporter = baseMapper.getTotalProjectSupportNumber(uid);
+
+        Double projectsMoney = baseMapper.getTotalProjectSupportMoney(uid);
+
+        // 发起的项目总数
+        QueryWrapper<Project> projectQueryWrapper = new QueryWrapper<>();
+        projectQueryWrapper.eq("sponsor", uid);
+
+        Long projectNumber = baseMapper.selectCount(projectQueryWrapper);
+
+        resultMap.put(CrowdConstant.TOTAL_PROJECT_NUMBER, projectNumber);
+
+        resultMap.put(CrowdConstant.TOTAL_PROJECT_SUPPORTER, projectSupporter);
+
+        resultMap.put(CrowdConstant.TOTAL_PROJECT_MONEY, projectsMoney);
+
+        return resultMap;
     }
 }

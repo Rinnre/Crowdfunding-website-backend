@@ -37,4 +37,15 @@ public class CrowdConstant {
 
     public static final String PROJECT_STATUS_SUCCESS = "众筹结束";
     public static final String PROJECT_STATUS_SUCCESS_NUMBER = "2";
+
+    public static final  String PROJECT_STATUS_PREPARED = "准备中";
+    public static final  String PROJECT_STATUS_PREPARED_NUMBER = "3";
+
+
+
+    // 项目统计
+    public static final String TOTAL_PROJECT_NUMBER = "TOTAL_PROJECT_NUMBER";
+    public static final String TOTAL_PROJECT_SUPPORTER = "TOTAL_PROJECT_SUPPORTER";
+    public static final String TOTAL_PROJECT_MONEY = "TOTAL_PROJECT_MONEY";
+    public static final String COMMENT_TYPE_DYNAMIC = "dynamic";
 }

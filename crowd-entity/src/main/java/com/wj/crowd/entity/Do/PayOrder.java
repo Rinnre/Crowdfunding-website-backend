@@ -64,7 +64,7 @@ public class PayOrder implements Serializable {
     private Long rewardCount;
 
     @ApiModelProperty(value = "付款时间")
-    private Date payTime;
+    private LocalDateTime payTime;
 
     @ApiModelProperty(value = "订单状态（0：已取消，1：未支付，2：已支付，3：待发货）")
     private Integer orderStatus;

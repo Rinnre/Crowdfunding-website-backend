@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -92,6 +93,18 @@ public class ProjectController {
         }
     }
 
+    @ApiOperation("获取用户项目简要信息")
+    @GetMapping("/get/user/simple/project/info/{uid}")
+    public ResultEntity<Map<String, Object>> getUserSimpleProjectInfo(@PathVariable String uid) {
+        try {
+            Map<String, Object> resultMap = projectService.getUserSimpleProjectInfo(uid);
+            return ResultEntity.success(resultMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+    }
+
     @DeleteMapping("remove/project/{projectId}")
     @ApiOperation("项目删除操作")
     public ResultEntity<String> removeProjectById(@PathVariable String projectId) {
@@ -110,7 +123,7 @@ public class ProjectController {
                                                        @RequestBody Project project) {
 
         try {
-            projectService.modifyProjectSupporter(supportId,project);
+            projectService.modifyProjectSupporter(supportId, project);
             return ResultEntity.success();
         } catch (Exception e) {
             e.printStackTrace();

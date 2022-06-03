@@ -1,5 +1,7 @@
 package com.wj.crowd.entity.Vo.order;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.wj.crowd.entity.Vo.address.ShippingAddressVo;
 import com.wj.crowd.entity.Vo.project.RewardVo;
 import io.swagger.annotations.ApiModelProperty;
@@ -23,6 +25,9 @@ public class PayOrderVo {
     @ApiModelProperty(value = "项目id")
     private String projectId;
 
+    @ApiModelProperty(value = "项目名称")
+    private String projectName;
+
     @ApiModelProperty(value = "下单用户id")
     private String uid;
 
@@ -43,4 +48,7 @@ public class PayOrderVo {
 
     @ApiModelProperty(value = "订单状态（0：已取消，1：未支付，2：已支付，3：待发货）")
     private Integer orderStatus;
+
+    @ApiModelProperty(value = "订单创建时间")
+    private LocalDateTime createTime;
 }

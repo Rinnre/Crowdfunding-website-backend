@@ -1,19 +1,31 @@
 package com.wj.crowd.mysql.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wj.crowd.common.constant.CrowdConstant;
 import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.entity.Do.PayOrder;
+import com.wj.crowd.entity.Do.Picture;
+import com.wj.crowd.entity.Do.Project;
 import com.wj.crowd.entity.Do.Reward;
+import com.wj.crowd.entity.Vo.address.ShippingAddressVo;
+import com.wj.crowd.entity.Vo.order.PayOrderVo;
+import com.wj.crowd.entity.Vo.picture.PictureVo;
+import com.wj.crowd.entity.Vo.project.RewardVo;
 import com.wj.crowd.mysql.mapper.PayOrderMapper;
 import com.wj.crowd.mysql.service.api.PayOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wj.crowd.mysql.service.api.PictureService;
+import com.wj.crowd.mysql.service.api.ProjectService;
 import com.wj.crowd.mysql.service.api.RewardService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -30,6 +42,13 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     @Autowired
     private RewardService rewardService;
 
+    @Autowired
+    private PictureService pictureService;
+
+    @Autowired
+    private ProjectService projectService;
+
+
     @Override
     public void modifyOrderInfo(PayOrder payOrderVo) {
         String id = payOrderVo.getId();
@@ -44,6 +63,9 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         // 更新支付流水号
         if (null != payOrderVo.getPayNum() && payOrder.getPayNum() == null) {
             payOrder.setPayNum(payOrderVo.getPayNum());
+        }
+        if (null != payOrderVo.getPayTime() && payOrder.getPayTime() == null) {
+            payOrder.setPayTime(payOrderVo.getPayTime());
         }
         if (!Objects.equals(payOrder.getOrderStatus(), CrowdConstant.ORDER_STATUS_PENDING_SHIPMENT)) {
             // 更新订单信息
@@ -100,5 +122,61 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             }
         }
         return insert > 0;
+    }
+
+    @Override
+    public List<PayOrderVo> getUserOrderInfo(String uid,String orderStatus) {
+        QueryWrapper<PayOrder> payOrderQueryWrapper = new QueryWrapper<>();
+        payOrderQueryWrapper.eq("uid",uid);
+        payOrderQueryWrapper.eq(null!=orderStatus,"order_status",orderStatus);
+        List<PayOrder> payOrders = baseMapper.selectList(payOrderQueryWrapper);
+
+        List<PayOrderVo> payOrderVos = new ArrayList<>();
+
+        // 遍历order对象查询其回报信息和封装为vo对象
+
+        payOrders.forEach(payOrder -> {
+
+            PayOrderVo payOrderVo = new PayOrderVo();
+            BeanUtils.copyProperties(payOrder,payOrderVo);
+
+            // 收货人地址信息转换
+            ShippingAddressVo address = new ShippingAddressVo();
+            address.setConsigneeName(payOrder.getConsigneeName());
+            address.setConsigneePhone(payOrder.getConsigneePhone());
+            address.setConsigneeEmail(payOrder.getConsigneeEmail());
+            address.setConsigneeAddress(payOrder.getConsigneeAddress());
+
+            payOrderVo.setAddress(address);
+
+            // 获取项目名称
+            Project project = projectService.getById(payOrder.getProjectId());
+
+            payOrderVo.setProjectName(project.getTitle());
+
+            // 回报信息转换
+            String rewardId = payOrder.getRewardId();
+            Reward reward = rewardService.getById(rewardId);
+            QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
+            pictureQueryWrapper.eq("foreign_id",rewardId);
+            pictureQueryWrapper.eq("type",CrowdConstant.PICTURE_TYPE_REWARD);
+            List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
+            List<PictureVo> pictureVos = new ArrayList<>();
+
+            pictureList.forEach(picture -> {
+                PictureVo pictureVo = new PictureVo();
+                BeanUtils.copyProperties(picture,pictureVo);
+                pictureVos.add(pictureVo);
+            });
+
+
+            RewardVo rewardVo = new RewardVo();
+            BeanUtils.copyProperties(reward,rewardVo);
+            rewardVo.setPictureVos(pictureVos);
+
+            payOrderVo.setRewardVo(rewardVo);
+            payOrderVos.add(payOrderVo);
+        });
+        return payOrderVos;
     }
 }

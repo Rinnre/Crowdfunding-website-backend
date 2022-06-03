@@ -13,6 +13,7 @@
         FROM dynamic
         WHERE uid = #{userId}
         AND is_delete = 0
+        ORDER BY create_time DESC
     </select>
 
     <select id="getPictureByDynamicId" resultType="com.wj.crowd.entity.Do.Picture">

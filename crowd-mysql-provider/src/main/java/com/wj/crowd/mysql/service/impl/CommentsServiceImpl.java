@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wj.crowd.common.constant.CrowdConstant;
 import com.wj.crowd.entity.Do.Comments;
 import com.wj.crowd.entity.Do.Project;
 import com.wj.crowd.entity.Vo.comment.CommentFormVo;
@@ -92,15 +93,22 @@ public class CommentsServiceImpl extends ServiceImpl<CommentsMapper, Comments> i
         int insert = baseMapper.insert(comment);
         // 5.项目评论数增加
 
-        String sourceId = comment.getSourceId();
-        Project project = projectService.getById(sourceId);
+        if(CrowdConstant.COMMENT_TYPE_PROJECT.equals(commentFormVo.getSourceType())){
 
-        UpdateWrapper<Project> projectUpdateWrapper = new UpdateWrapper<>();
-        projectUpdateWrapper.eq("id",sourceId);
-        projectUpdateWrapper.set("comment_number",project.getCommentNumber()+1);
-        boolean updateResult = projectService.update(projectUpdateWrapper);
+            String sourceId = comment.getSourceId();
+            Project project = projectService.getById(sourceId);
 
-        return insert > 0&&updateResult;
+            UpdateWrapper<Project> projectUpdateWrapper = new UpdateWrapper<>();
+            projectUpdateWrapper.eq("id", sourceId);
+            projectUpdateWrapper.set("comment_number", project.getCommentNumber() + 1);
+            boolean updateResult = projectService.update(projectUpdateWrapper);
+
+            if(!updateResult){
+                return false;
+            }
+        }
+
+        return insert > 0;
     }
 
     /**

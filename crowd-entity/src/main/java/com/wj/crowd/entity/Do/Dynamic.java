@@ -38,6 +38,10 @@ public class Dynamic implements Serializable {
     @ApiModelProperty(value = "发布人id")
     private String uid;
 
+    @ApiModelProperty(value = "发起人信息")
+    @TableField(exist = false)
+    private User user;
+
     @ApiModelProperty(value = "动态内容")
     private String content;
 

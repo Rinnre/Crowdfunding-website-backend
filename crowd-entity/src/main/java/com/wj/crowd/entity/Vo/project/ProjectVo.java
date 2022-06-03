@@ -9,6 +9,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -68,10 +69,10 @@ public class ProjectVo {
     private List<ProjectDetailVo> projectDetailVos;
 
     @ApiModelProperty(value = "众筹开始时间")
-    private Date startTime;
+    private LocalDateTime startTime;
 
     @ApiModelProperty(value = "众筹结束时间")
-    private Date endTime;
+    private LocalDateTime endTime;
 
     @ApiModelProperty(value = "项目状态")
     private String status;

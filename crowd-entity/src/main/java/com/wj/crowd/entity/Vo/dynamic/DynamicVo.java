@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.wj.crowd.entity.Vo.picture.PictureVo;
+import com.wj.crowd.entity.Vo.user.SimpleUserVo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -23,6 +24,9 @@ public class DynamicVo {
 
     @ApiModelProperty(value = "发布人id")
     private String uid;
+
+    @ApiModelProperty(value = "发起人对象")
+    private SimpleUserVo user;
 
     @ApiModelProperty(value = "动态内容")
     private String content;

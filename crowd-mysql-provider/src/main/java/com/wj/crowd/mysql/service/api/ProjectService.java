@@ -8,6 +8,7 @@ import com.wj.crowd.entity.Vo.project.SearchProjectVo;
 import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -32,4 +33,6 @@ public interface ProjectService extends IService<Project> {
     void removeProjectById(String projectId);
 
     void modifyProjectSupporter(String supportId, Project project);
+
+    Map<String, Object> getUserSimpleProjectInfo(String uid);
 }

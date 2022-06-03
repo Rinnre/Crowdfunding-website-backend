@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.*;
 import com.wj.crowd.entity.Vo.comment.CommentFormVo;
+import com.wj.crowd.entity.Vo.order.PayOrderVo;
 import com.wj.crowd.entity.Vo.project.SearchProjectVo;
 import com.wj.crowd.entity.Vo.project.UpdateProjectVo;
 import com.wj.crowd.entity.Vo.user.UserAuthInfoVo;
@@ -87,6 +88,11 @@ public interface MysqlRemoteService {
     @DeleteMapping("/mysql/dynamic/remove/dynamic/{uid}/{dynamicId}")
     ResultEntity<String> removeDynamic(@PathVariable String uid, @PathVariable String dynamicId);
 
+    // 动态
+    @ApiOperation("查看所有动态")
+    @GetMapping("/mysql/dynamic/get/all/dynamic")
+    public ResultEntity<List<Dynamic>> getAllDynamic();
+
     // 用户收货地址管理
     @GetMapping("/mysql/shipping-address/get/shipping/address/{uid}")
     @ApiOperation("获取用户所有地址信息")
@@ -112,6 +118,15 @@ public interface MysqlRemoteService {
     @DeleteMapping("/mysql/project/remove/project/{projectId}")
     @ApiOperation("用户项目删除操作")
     public ResultEntity<String> removeProjectById(@PathVariable String projectId);
+
+    @ApiOperation("获取用户项目简要信息")
+    @GetMapping("/mysql/project/get/user/simple/project/info/{uid}")
+    public ResultEntity<Map<String, Object>> getUserSimpleProjectInfo(@PathVariable String uid);
+
+    // 用户订单信息查看
+    @ApiOperation("查询用户所有订单信息")
+    @GetMapping("/mysql/pay_order/get/user/order/info/{uid}")
+    public ResultEntity<List<PayOrderVo>> getUserOrderInfo(@PathVariable String uid,@RequestParam(required = false) String orderStatus);
 
     // 订单信息
     @ApiOperation("获取订单回报信息")

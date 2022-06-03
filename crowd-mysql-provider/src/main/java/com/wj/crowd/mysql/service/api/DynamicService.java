@@ -21,4 +21,7 @@ public interface DynamicService extends IService<Dynamic> {
     boolean saveDynamic(Dynamic dynamic, List<Picture> picture);
 
     List<Dynamic> getDynamicByUserId(String userId);
+
+    List<Dynamic> getAllDynamic();
+
 }

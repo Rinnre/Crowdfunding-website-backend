@@ -3,6 +3,9 @@ package com.wj.crowd.mysql.service.api;
 import com.wj.crowd.entity.Do.PayOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wj.crowd.entity.Do.Reward;
+import com.wj.crowd.entity.Vo.order.PayOrderVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -19,4 +22,7 @@ public interface PayOrderService extends IService<PayOrder> {
     Reward getRewardByIdRemote(String rewardId);
 
     boolean saveOrder(PayOrder payOrder);
+
+    List<PayOrderVo> getUserOrderInfo(String uid,String orderStatus);
+
 }

@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wj.crowd.common.constant.CrowdConstant;
 import com.wj.crowd.entity.Do.Dynamic;
 import com.wj.crowd.entity.Do.Picture;
+import com.wj.crowd.entity.Do.User;
 import com.wj.crowd.mysql.mapper.DynamicMapper;
 import com.wj.crowd.mysql.service.api.PictureService;
 import com.wj.crowd.mysql.service.api.DynamicService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wj.crowd.mysql.service.api.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -30,6 +32,9 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic> impl
     @Autowired
     private PictureService pictureService;
 
+    @Autowired
+    private UserService userService;
+
     /**
      * 用户删除自己的动态
      *
@@ -51,7 +56,7 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic> impl
         QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
         pictureQueryWrapper.eq("foreign_id", dynamicId);
         boolean remove = pictureService.remove(pictureQueryWrapper);
-        return  true;
+        return true;
     }
 
     /**
@@ -92,6 +97,36 @@ public class DynamicServiceImpl extends ServiceImpl<DynamicMapper, Dynamic> impl
      */
     @Override
     public List<Dynamic> getDynamicByUserId(String userId) {
-        return baseMapper.getDynamicByUserId(userId);
+        List<Dynamic> dynamicByUserId = baseMapper.getDynamicByUserId(userId);
+        User user = userService.getById(userId);
+        user.setPassword(null);
+        dynamicByUserId.forEach(dynamic -> {
+            dynamic.setUser(user);
+        });
+        return dynamicByUserId;
+    }
+
+    @Override
+    public List<Dynamic> getAllDynamic() {
+
+        QueryWrapper<Dynamic> dynamicQueryWrapper = new QueryWrapper<>();
+        dynamicQueryWrapper.orderByDesc("create_time");
+        List<Dynamic> dynamicList = baseMapper.selectList(dynamicQueryWrapper);
+
+        dynamicList.forEach(dynamic -> {
+            // 获取动态图片
+            String id = dynamic.getId();
+            QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
+            pictureQueryWrapper.eq("foreign_id", id);
+            pictureQueryWrapper.eq("type", CrowdConstant.PICTURE_TYPE_DYNAMIC);
+            List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
+            dynamic.setPictureList(pictureList);
+            // 获取动态发起人
+            String uid = dynamic.getUid();
+            User user = userService.getById(uid);
+            user.setPassword(null);
+            dynamic.setUser(user);
+        });
+        return dynamicList;
     }
 }

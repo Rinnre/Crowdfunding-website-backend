@@ -14,19 +14,19 @@
     <select id="getProjectPages" resultMap="simpleProjectResultMap">
         SELECT id,title,support_money,supporter_number,head_picture,support_money/target_money*100 "percentage",sponsor
         FROM project
+        WHERE status IN (1,2)
         <if test="null!=searchProjectVo">
-            <where>
-                <if test="null!=searchProjectVo.keywords">
-                    AND title LIKE concat('%',#{searchProjectVo.keywords},'%')
-                </if>
-                <if test="null!=searchProjectVo.type">
-                    AND type = #{searchProjectVo.type}
-                </if>
-                <if test="null!=searchProjectVo.status">
-                    AND status = #{searchProjectVo.status}
-                </if>
-                AND is_delete=0
-            </where>
+            <if test="null!=searchProjectVo.keywords">
+                AND title LIKE concat('%',#{searchProjectVo.keywords},'%')
+            </if>
+            <if test="null!=searchProjectVo.type">
+                AND type = #{searchProjectVo.type}
+            </if>
+            <if test="null!=searchProjectVo.status">
+                AND status = #{searchProjectVo.status}
+            </if>
+            AND is_delete=0
+
             <if test="null!=searchProjectVo.sortMethods">
                 <if test="'comment_number'==searchProjectVo.sortMethods">
                     ORDER BY comment_number DESC
@@ -100,4 +100,18 @@
         INSERT project_user (project_id,user_id,type)
         VALUES(#{id},#{supportId},'support')
     </insert>
+
+    <!--    Long getTotalProjectSupportNumber(String uid);-->
+    <select id="getTotalProjectSupportNumber" resultType="java.lang.Long">
+        SELECT SUM(supporter_number)
+        FROM project
+        WHERE sponsor = #{uid}
+    </select>
+    <!--    Double getTotalProjectSupportMoney(String uid);-->
+    <select id="getTotalProjectSupportMoney" resultType="java.lang.Double">
+        SELECT SUM(support_money)
+        FROM project
+        WHERE sponsor = #{uid}
+    </select>
+
 </mapper>

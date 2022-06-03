@@ -3,7 +3,9 @@ package com.wj.crowd.entity.Vo.project;
 import com.wj.crowd.entity.Vo.project.ProjectDetailVo;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -36,4 +38,16 @@ public class UpdateProjectVo {
 
     @ApiModelProperty(value = "项目详情")
     private List<ProjectDetailVo> projectDetailVos;
+
+    @ApiModelProperty(value = "众筹开始时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd hh:mm:ss")
+    private LocalDateTime startTime;
+
+    @ApiModelProperty(value = "众筹结束时间")
+    @DateTimeFormat(pattern = "yyyy-MM-dd hh:mm:ss")
+    private LocalDateTime endTime;
+
+    @ApiModelProperty(value = "项目状态")
+
+    private String Status;
 }

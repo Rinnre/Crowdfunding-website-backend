@@ -36,6 +36,18 @@ public class DynamicController {
         return ResultEntity.success();
     }
 
+    @ApiOperation("查看所有动态")
+    @GetMapping("/get/all/dynamic")
+    public ResultEntity<List<Dynamic>> getAllDynamic(){
+        try {
+            List<Dynamic> dynamicList = dynamicService.getAllDynamic();
+            return ResultEntity.success(dynamicList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+    }
+
     @ApiOperation("用户删除动态")
     @DeleteMapping("/remove/dynamic/{uid}/{dynamicId}")
     public ResultEntity<String> removeDynamic(@PathVariable String uid, @PathVariable String dynamicId) {
