@@ -9,7 +9,7 @@
     </resultMap>
 <!--    List<Dynamic> getDynamicByUserId(String userId);-->
     <select id="getDynamicByUserId" resultMap="dynamicResultMap" >
-        SELECT id,content,create_time
+        SELECT id,uid,content,create_time
         FROM dynamic
         WHERE uid = #{userId}
         AND is_delete = 0
