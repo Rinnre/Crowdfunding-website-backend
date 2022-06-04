@@ -42,6 +42,11 @@ public class JwtHelper {
         return (String) claims.get("userName");
     }
 
+    public static void removeToken(String token) {
+
+    }
+
+
     public static void main(String[] args) {
         String token = JwtHelper.createToken("1522936790275686401", "15570756116");
 //        String token = "eyJhbGciOiJIUzUxMiIsInppcCI6IkdaSVAifQ.H4sIAAAAAAAAAKtWKi5NUrJScg7yD3fRDQ12DVLSUUqtKFCyMjQzNTI0MzO1sNBRKi1OLfJMAYqZGhlZGpuZWxoYmZuaWZiZGBhCJP0Sc1OBphiampobAGUMDc2UagELwOVdWwAAAA.4fcaa54kBsrO8QF7R7G6VBlv1LM0ZYBfr8S6qbVMMmHlxl-ct6zV6_LWeVq1vPovGAbKipjOTcPKK7nNqY32ow";

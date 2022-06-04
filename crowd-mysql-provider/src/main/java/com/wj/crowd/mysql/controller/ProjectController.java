@@ -1,6 +1,7 @@
 package com.wj.crowd.mysql.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.Project;
@@ -128,6 +129,23 @@ public class ProjectController {
         } catch (Exception e) {
             e.printStackTrace();
             return ResultEntity.fail();
+        }
+    }
+
+    @ApiOperation("后台项目审核")
+    @GetMapping("/modify/project/status/{projectId}/{status}")
+    public ResultEntity<String> modifyProjectStatus(@PathVariable String projectId,
+                                                    @PathVariable String status) {
+
+        try {
+            UpdateWrapper<Project> projectUpdateWrapper = new UpdateWrapper<>();
+            projectUpdateWrapper.eq("id", projectId);
+            projectUpdateWrapper.set("status", status);
+            projectService.update(projectUpdateWrapper);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
         }
     }
 

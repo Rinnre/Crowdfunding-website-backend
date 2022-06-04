@@ -1,6 +1,7 @@
 package com.wj.crowd.mysql.controller;
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.PayOrder;
@@ -110,6 +111,24 @@ public class PayOrderController {
         try {
             List<PayOrderVo> payOrderVoList = payOrderService.getUserOrderInfo(uid,orderStatus);
             return ResultEntity.success(payOrderVoList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+
+    }
+
+    // 查询所有订单信息
+    @ApiOperation("查询所有订单信息")
+    @GetMapping("/get/all/order/pages/{page}/{size}")
+    public ResultEntity<Page<PayOrderVo>> getAllOrderPages(@PathVariable  Long page,
+                                                         @PathVariable Long size,
+                                                         @RequestParam(required = false) String keyWords,
+                                                         @RequestParam(required = false) String orderStatus){
+        try {
+
+            Page<PayOrderVo> orderPages = payOrderService.getAllOrderPages(page,size,keyWords,orderStatus);
+            return ResultEntity.success(orderPages);
         } catch (Exception e) {
             e.printStackTrace();
             return ResultEntity.fail();

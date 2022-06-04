@@ -1,5 +1,6 @@
 package com.wj.crowd.mysql.service.api;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.entity.Do.PayOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.wj.crowd.entity.Do.Reward;
@@ -25,4 +26,5 @@ public interface PayOrderService extends IService<PayOrder> {
 
     List<PayOrderVo> getUserOrderInfo(String uid,String orderStatus);
 
+    Page<PayOrderVo> getAllOrderPages(Long page, Long size, String keyWords, String orderStatus);
 }

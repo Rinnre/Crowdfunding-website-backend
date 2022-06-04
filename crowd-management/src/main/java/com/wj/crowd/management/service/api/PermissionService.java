@@ -25,4 +25,6 @@ public interface PermissionService extends IService<Permission> {
     int removePermissionMenuByMenuId(String menuId);
 
     List<PermissionVo> getPermissions(String menuId);
+
+    List<String> selectPermissionValueListByUserId(String id);
 }

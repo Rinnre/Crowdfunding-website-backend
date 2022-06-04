@@ -1,6 +1,9 @@
 package com.wj.crowd.mysql.controller;
 
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.User;
 import com.wj.crowd.entity.Vo.user.UserAuthInfoVo;
@@ -89,6 +92,36 @@ public class UserController {
     }
 
 
+    @GetMapping("/get/user/info/pages/{page}/{size}")
+    @ApiOperation("后台查询所有用户信息接口")
+    public ResultEntity<Page<User>> getUserPages(@PathVariable Long page,
+                                                 @PathVariable Long size,
+                                                 @RequestParam(value = "key_words", required = false) String keyWords,
+                                                 @RequestParam(value = "authStatus", required = false) Integer authStatus) {
+        try {
+            Page<User> userPage = userService.getUserPages(page, size, keyWords, authStatus);
+            return ResultEntity.success(userPage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail();
+        }
+    }
+
+    @ApiOperation("更新用户认证状态")
+    @PutMapping("/modify/user/auth/Status/{uid}/{authStatus}")
+    public ResultEntity<String> modifyUserAuthStatus(@PathVariable String uid,
+                                                     @PathVariable Integer authStatus) {
+        try {
+            UpdateWrapper<User> userUpdateWrapper = new UpdateWrapper<>();
+            userUpdateWrapper.eq("uid", uid);
+            userUpdateWrapper.set("auth_status", authStatus);
+            userService.update(userUpdateWrapper);
+            return ResultEntity.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResultEntity.fail(e.getMessage());
+        }
+    }
 
 }
 

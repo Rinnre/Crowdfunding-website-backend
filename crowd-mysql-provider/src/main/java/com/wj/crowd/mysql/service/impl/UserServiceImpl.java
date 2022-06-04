@@ -1,6 +1,8 @@
 package com.wj.crowd.mysql.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.entity.Do.User;
@@ -13,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.Date;
 import java.util.Objects;
@@ -150,5 +153,27 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if(insertResult<=0){
             throw new CrowdException(ResultCodeEnum.SAVE_DATA_ERROR);
         }
+    }
+
+    /**
+     *  后台接口
+     * @param page
+     * @param size
+     * @param keyWords
+     * @return
+     */
+    @Override
+    public Page<User> getUserPages(Long page, Long size, String keyWords,Integer authStatus) {
+        // 封装查询条件
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.select(User.class,item -> !item .getColumn().equals("password"));
+        userQueryWrapper.like(!ObjectUtils.isEmpty(keyWords), "uid", keyWords);
+        userQueryWrapper.or().like(!ObjectUtils.isEmpty(keyWords), "phone", keyWords);
+        userQueryWrapper.or().like(!ObjectUtils.isEmpty(keyWords), "nick_name", keyWords);
+        userQueryWrapper.eq(!ObjectUtils.isEmpty(authStatus), "auth_status", authStatus);
+
+        Page<User> userPage = new Page<>(page, size);
+
+        return baseMapper.selectPage(userPage, userQueryWrapper);
     }
 }

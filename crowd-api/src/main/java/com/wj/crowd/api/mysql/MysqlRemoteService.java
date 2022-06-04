@@ -1,5 +1,6 @@
 package com.wj.crowd.api.mysql;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.result.ResultEntity;
 import com.wj.crowd.entity.Do.*;
@@ -165,4 +166,29 @@ public interface MysqlRemoteService {
     public ResultEntity<String> removeComment(@PathVariable String commentId,
                                               @PathVariable String uid);
 
+    // 后台用户管理
+    @GetMapping("/mysql/user/get/user/info/pages/{page}/{size}")
+    @ApiOperation("后台查询所有用户信息接口")
+    public ResultEntity<Page<User>> getUserPages(@PathVariable Long page,
+                                                  @PathVariable Long size,
+                                                  @RequestParam(value = "key_words",required = false) String keyWords,
+                                                 @RequestParam(value = "authStatus",required = false)Integer authStatus);
+    @ApiOperation("更新用户认证状态")
+    @PutMapping("/mysql/user/modify/user/auth/Status/{uid}/{authStatus}")
+    public ResultEntity<String> modifyUserAuthStatus(@PathVariable String uid,
+                                                     @PathVariable Integer authStatus);
+
+    // 后台订单管理
+    @ApiOperation("查询所有订单信息")
+    @GetMapping("/mysql/pay_order/get/all/order/pages/{page}/{size}")
+    public ResultEntity<Page<PayOrderVo>> getAllOrderPages(@PathVariable  Long page,
+                                                           @PathVariable Long size,
+                                                           @RequestParam(required = false) String keyWords,
+                                                           @RequestParam(required = false) String orderStatus);
+
+    // 后台项目审核
+    @ApiOperation("后台项目审核")
+    @GetMapping("/mysql/project/modify/project/status/{projectId}/{status}")
+    public ResultEntity<String> modifyProjectStatus(@PathVariable String projectId,
+                                                    @PathVariable String status);
 }

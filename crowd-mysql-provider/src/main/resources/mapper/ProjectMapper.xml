@@ -14,7 +14,10 @@
     <select id="getProjectPages" resultMap="simpleProjectResultMap">
         SELECT id,title,support_money,supporter_number,head_picture,support_money/target_money*100 "percentage",sponsor
         FROM project
-        WHERE status IN (1,2)
+        WHERE 1=1
+        <if test="null==searchProjectVo||null==searchProjectVo.status">
+            AND status IN (1,2)
+        </if>
         <if test="null!=searchProjectVo">
             <if test="null!=searchProjectVo.keywords">
                 AND title LIKE concat('%',#{searchProjectVo.keywords},'%')

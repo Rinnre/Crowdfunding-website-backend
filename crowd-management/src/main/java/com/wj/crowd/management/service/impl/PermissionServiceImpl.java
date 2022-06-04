@@ -5,11 +5,16 @@ import com.wj.crowd.common.constant.PermissionValueToName;
 import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
 import com.wj.crowd.management.entity.Do.Permission;
+import com.wj.crowd.management.entity.Do.Role;
 import com.wj.crowd.management.entity.Vo.PermissionVo;
+import com.wj.crowd.management.entity.Vo.RoleVo;
 import com.wj.crowd.management.mapper.PermissionMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wj.crowd.management.service.api.AdminService;
 import com.wj.crowd.management.service.api.PermissionService;
+import com.wj.crowd.management.service.api.RoleService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,6 +30,12 @@ import java.util.List;
  */
 @Service
 public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permission> implements PermissionService {
+
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private AdminService adminService;
 
     /**
      * 获取所有权限
@@ -79,5 +90,22 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
             permissionVos.add(permissionVo);
         });
         return permissionVos;
+    }
+
+    @Override
+    public List<String> selectPermissionValueListByUserId(String id) {
+        List<RoleVo> assignedRoles = adminService.getAssignedRoles(id);
+        List<String> permissionValues = new ArrayList<>();
+        if(assignedRoles!=null){
+
+            assignedRoles.forEach(roleVo -> {
+                List<PermissionVo> assignedPermissions = roleService.getAssignedPermissions(roleVo.getId());
+                assignedPermissions.forEach(assignedPermission -> {
+                    permissionValues.add(assignedPermission.getValue());
+                });
+            });
+        }
+
+        return permissionValues;
     }
 }

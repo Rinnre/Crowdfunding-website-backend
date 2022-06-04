@@ -1,6 +1,7 @@
 package com.wj.crowd.mysql.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wj.crowd.common.constant.CrowdConstant;
 import com.wj.crowd.common.exception.CrowdException;
 import com.wj.crowd.common.result.ResultCodeEnum;
@@ -23,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -117,7 +120,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             reward.setInventoryNumber(Math.toIntExact(inventoryNumber - payOrder.getRewardCount()));
 
             boolean b = rewardService.updateById(reward);
-            if(!b){
+            if (!b) {
                 return false;
             }
         }
@@ -125,10 +128,10 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
     }
 
     @Override
-    public List<PayOrderVo> getUserOrderInfo(String uid,String orderStatus) {
+    public List<PayOrderVo> getUserOrderInfo(String uid, String orderStatus) {
         QueryWrapper<PayOrder> payOrderQueryWrapper = new QueryWrapper<>();
-        payOrderQueryWrapper.eq("uid",uid);
-        payOrderQueryWrapper.eq(null!=orderStatus,"order_status",orderStatus);
+        payOrderQueryWrapper.eq("uid", uid);
+        payOrderQueryWrapper.eq(null != orderStatus, "order_status", orderStatus);
         List<PayOrder> payOrders = baseMapper.selectList(payOrderQueryWrapper);
 
         List<PayOrderVo> payOrderVos = new ArrayList<>();
@@ -138,7 +141,7 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
         payOrders.forEach(payOrder -> {
 
             PayOrderVo payOrderVo = new PayOrderVo();
-            BeanUtils.copyProperties(payOrder,payOrderVo);
+            BeanUtils.copyProperties(payOrder, payOrderVo);
 
             // 收货人地址信息转换
             ShippingAddressVo address = new ShippingAddressVo();
@@ -158,25 +161,92 @@ public class PayOrderServiceImpl extends ServiceImpl<PayOrderMapper, PayOrder> i
             String rewardId = payOrder.getRewardId();
             Reward reward = rewardService.getById(rewardId);
             QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
-            pictureQueryWrapper.eq("foreign_id",rewardId);
-            pictureQueryWrapper.eq("type",CrowdConstant.PICTURE_TYPE_REWARD);
+            pictureQueryWrapper.eq("foreign_id", rewardId);
+            pictureQueryWrapper.eq("type", CrowdConstant.PICTURE_TYPE_REWARD);
             List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
             List<PictureVo> pictureVos = new ArrayList<>();
 
             pictureList.forEach(picture -> {
                 PictureVo pictureVo = new PictureVo();
-                BeanUtils.copyProperties(picture,pictureVo);
+                BeanUtils.copyProperties(picture, pictureVo);
                 pictureVos.add(pictureVo);
             });
 
 
             RewardVo rewardVo = new RewardVo();
-            BeanUtils.copyProperties(reward,rewardVo);
+            BeanUtils.copyProperties(reward, rewardVo);
             rewardVo.setPictureVos(pictureVos);
 
             payOrderVo.setRewardVo(rewardVo);
             payOrderVos.add(payOrderVo);
         });
         return payOrderVos;
+    }
+
+    /**
+     * 后台查询所有订单
+     *
+     * @param page
+     * @param size
+     * @param keyWords
+     * @param orderStatus
+     * @return
+     */
+    @Override
+    public Page<PayOrderVo> getAllOrderPages(Long page, Long size, String keyWords, String orderStatus) {
+        Page<PayOrder> orderPage = new Page<>(page, size);
+        QueryWrapper<PayOrder> payOrderQueryWrapper = new QueryWrapper<>();
+        payOrderQueryWrapper.like(!ObjectUtils.isEmpty(keyWords), "id", keyWords);
+        payOrderQueryWrapper.or().like(!ObjectUtils.isEmpty(keyWords), "project_id", keyWords);
+        payOrderQueryWrapper.or().like(!ObjectUtils.isEmpty(keyWords), "uid", keyWords);
+        payOrderQueryWrapper.or().like(!ObjectUtils.isEmpty(keyWords), "consignee_name", keyWords);
+
+        payOrderQueryWrapper.eq(!ObjectUtils.isEmpty(orderStatus), "order_status", orderStatus);
+
+        Page<PayOrderVo> payOrderVoPage = new Page<>(page, size);
+        Page<PayOrder> orderPages = baseMapper.selectPage(orderPage, payOrderQueryWrapper);
+        if(orderPages.getRecords()!=null){
+
+            List<PayOrder> records = orderPages.getRecords();
+            List<PayOrderVo> payOrderVos = new ArrayList<>();
+            records.forEach(record -> {
+                PayOrderVo payOrderVo = new PayOrderVo();
+                BeanUtils.copyProperties(record, payOrderVo);
+
+                // 项目信息
+                String projectId = record.getProjectId();
+                Project project = projectService.getById(projectId);
+                payOrderVo.setProjectName(project.getName());
+
+                // 回报信息
+                String rewardId = record.getRewardId();
+                Reward reward = rewardService.getById(rewardId);
+                RewardVo rewardVo = new RewardVo();
+
+                QueryWrapper<Picture> pictureQueryWrapper = new QueryWrapper<>();
+                pictureQueryWrapper.eq("foreign_id", rewardId);
+                List<Picture> pictureList = pictureService.getBaseMapper().selectList(pictureQueryWrapper);
+                if (null != pictureList && pictureList.size() != 0) {
+                    List<PictureVo> pictureVos = new ArrayList<>();
+                    pictureList.forEach(picture -> {
+                        PictureVo pictureVo = new PictureVo();
+                        BeanUtils.copyProperties(picture, pictureVo);
+                        pictureVos.add(pictureVo);
+                    });
+                    rewardVo.setPictureVos(pictureVos);
+                }
+                BeanUtils.copyProperties(reward, rewardVo);
+
+                payOrderVo.setRewardVo(rewardVo);
+                payOrderVos.add(payOrderVo);
+
+            });
+        payOrderVoPage.setRecords(payOrderVos);
+        }
+
+        payOrderVoPage.setPages(orderPages.getPages());
+        payOrderVoPage.setTotal(orderPage.getTotal());
+
+        return payOrderVoPage;
     }
 }
